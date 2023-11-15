@@ -22,7 +22,7 @@ use zksync_web3_decl::{
     },
     namespaces::{
         DebugNamespaceServer, EnNamespaceServer, EthNamespaceServer, NetNamespaceServer,
-        Web3NamespaceServer, ZksNamespaceServer,
+        SnapshotsNamespaceServer, Web3NamespaceServer, ZksNamespaceServer,
     },
     types::Filter,
 };
@@ -56,8 +56,8 @@ use self::backend_jsonrpc::{
 };
 use self::metrics::API_METRICS;
 use self::namespaces::{
-    DebugNamespace, EnNamespace, EthNamespace, EthSubscribe, NetNamespace, Web3Namespace,
-    ZksNamespace,
+    DebugNamespace, EnNamespace, EthNamespace, EthSubscribe, NetNamespace, SnapshotsNamespace,
+    Web3Namespace, ZksNamespace,
 };
 use self::pubsub_notifier::{notify_blocks, notify_logs, notify_txs};
 use self::state::{Filters, InternalApiConfig, RpcState, SealedMiniblockNumber};
@@ -98,6 +98,7 @@ pub enum Namespace {
     Zks,
     En,
     Pubsub,
+    Snapshots,
 }
 
 impl Namespace {
@@ -109,6 +110,7 @@ impl Namespace {
         Namespace::Zks,
         Namespace::En,
         Namespace::Pubsub,
+        Namespace::Snapshots,
     ];
 
     pub const NON_DEBUG: &'static [Namespace] = &[
@@ -118,6 +120,7 @@ impl Namespace {
         Namespace::Zks,
         Namespace::En,
         Namespace::Pubsub,
+        Namespace::Snapshots,
     ];
 }
 
@@ -334,7 +337,11 @@ impl<G: 'static + Send + Sync + L1GasPriceProvider> ApiBuilder<G> {
                 .expect("Can't merge en namespace");
         }
         if namespaces.contains(&Namespace::Debug) {
-            rpc.merge(DebugNamespace::new(rpc_state).await.into_rpc())
+            rpc.merge(DebugNamespace::new(rpc_state.clone()).await.into_rpc())
+                .expect("Can't merge debug namespace");
+        }
+        if namespaces.contains(&Namespace::Snapshots) {
+            rpc.merge(SnapshotsNamespace::new(rpc_state).into_rpc())
                 .expect("Can't merge debug namespace");
         }
         rpc
