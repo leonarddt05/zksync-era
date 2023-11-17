@@ -1,3 +1,4 @@
+//! Consensus-related functionality.
 use anyhow::Context as _;
 use zksync_concurrency::{ctx, time, ctx::channel};
 use zksync_consensus_roles::validator;
@@ -8,8 +9,8 @@ use zksync_types::{Address, MiniblockNumber};
 mod payload;
 mod proto;
 
-pub(crate) use payload::Payload;
-
+pub(crate) use self::payload::Payload;
+/*
 struct Config {
     executor: ExecutorConfig,
     consensus: ConsensusConfig,
@@ -26,7 +27,6 @@ pub async fn run(cfg: Config, node_key: node::SecretKey, pool: zksync_dal::Conne
         cfg.consensus,
         cfg.validator_key,
         storage.clone(),
-        blocks_sender: channel::unbounded().0, // Just drop finalized blocks
     ).context("Executor::set_validator()")?;
 }
 
@@ -127,3 +127,4 @@ impl BlockChainState for PostgresState {
         txn.commit().await.context("commit()")
     }
 }
+*/
