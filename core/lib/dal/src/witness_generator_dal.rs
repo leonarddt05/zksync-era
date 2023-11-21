@@ -37,39 +37,44 @@ impl WitnessGeneratorDal<'_, '_> {
         let protocol_versions: Vec<i32> = protocol_versions.iter().map(|&id| id as i32).collect();
         let processing_timeout = pg_interval_from_duration(processing_timeout);
         let result: Option<WitnessGeneratorJobMetadata> = sqlx::query!(
-            "
-                UPDATE witness_inputs
-                SET status = 'in_progress', attempts = attempts + 1,
-                    updated_at = now(), processing_started_at = now()
-                WHERE l1_batch_number = (
-                        SELECT l1_batch_number
-                        FROM witness_inputs
-                        WHERE l1_batch_number <= $3
-                        AND
-                        (   status = 'queued'
-                            OR (status = 'in_progress' AND processing_started_at < now() - $1::interval)
-                            OR (status = 'failed' AND attempts < $2)
-                        )
-                        AND protocol_version = ANY($4)
-                        ORDER BY l1_batch_number ASC
-                        LIMIT 1
-                        FOR UPDATE
-                        SKIP LOCKED
-                )
-                RETURNING witness_inputs.*
-               ",
-                &processing_timeout,
-                max_attempts as i32,
-                last_l1_batch_to_process as i64,
-                &protocol_versions[..],
-            )
-            .fetch_optional(self.storage.conn())
-            .await
-            .unwrap()
-            .map(|row| WitnessGeneratorJobMetadata {
-                block_number: L1BatchNumber(row.l1_batch_number as u32),
-                proofs: vec![],
-            });
+            "   UPDATE witness_inputs \
+                   SET status = 'in_progress', \
+                       attempts = attempts + 1, \
+                       updated_at = NOW(), \
+                       processing_started_at = NOW() \
+                 WHERE l1_batch_number = ( \
+                          SELECT l1_batch_number \
+                            FROM witness_inputs \
+                           WHERE l1_batch_number <= $3 \
+                             AND ( \
+                                 status = 'queued' \
+                              OR ( \
+                                 status = 'in_progress' \
+                             AND processing_started_at < NOW() - $1::INTERVAL \
+                                 ) \
+                              OR ( \
+                                 status = 'failed' \
+                             AND attempts < $2 \
+                                 ) \
+                                 ) \
+                             AND protocol_version = ANY ($4) \
+                        ORDER BY l1_batch_number ASC \
+                           LIMIT 1 \
+                             FOR UPDATE SKIP LOCKED \
+                       ) \
+             RETURNING witness_inputs.*",
+            &processing_timeout,
+            max_attempts as i32,
+            last_l1_batch_to_process as i64,
+            &protocol_versions[..],
+        )
+        .fetch_optional(self.storage.conn())
+        .await
+        .unwrap()
+        .map(|row| WitnessGeneratorJobMetadata {
+            block_number: L1BatchNumber(row.l1_batch_number as u32),
+            proofs: vec![],
+        });
         result
     }
 
@@ -119,27 +124,32 @@ impl WitnessGeneratorDal<'_, '_> {
         let protocol_versions: Vec<i32> = protocol_versions.iter().map(|&id| id as i32).collect();
         let processing_timeout = pg_interval_from_duration(processing_timeout);
         let record = sqlx::query!(
-            "
-                UPDATE leaf_aggregation_witness_jobs
-                SET status = 'in_progress', attempts = attempts + 1,
-                    updated_at = now(), processing_started_at = now()
-                WHERE l1_batch_number = (
-                    SELECT l1_batch_number
-                    FROM leaf_aggregation_witness_jobs
-                    WHERE l1_batch_number <= $3
-                    AND
-                    (   status = 'queued'
-                        OR (status = 'in_progress' AND processing_started_at < now() - $1::interval)
-                        OR (status = 'failed' AND attempts < $2)
-                    )
-                    AND protocol_version = ANY($4)
-                    ORDER BY l1_batch_number ASC
-                    LIMIT 1
-                    FOR UPDATE
-                    SKIP LOCKED
-                )
-                RETURNING leaf_aggregation_witness_jobs.*
-                ",
+            "   UPDATE leaf_aggregation_witness_jobs \
+                   SET status = 'in_progress', \
+                       attempts = attempts + 1, \
+                       updated_at = NOW(), \
+                       processing_started_at = NOW() \
+                 WHERE l1_batch_number = ( \
+                          SELECT l1_batch_number \
+                            FROM leaf_aggregation_witness_jobs \
+                           WHERE l1_batch_number <= $3 \
+                             AND ( \
+                                 status = 'queued' \
+                              OR ( \
+                                 status = 'in_progress' \
+                             AND processing_started_at < NOW() - $1::INTERVAL \
+                                 ) \
+                              OR ( \
+                                 status = 'failed' \
+                             AND attempts < $2 \
+                                 ) \
+                                 ) \
+                             AND protocol_version = ANY ($4) \
+                        ORDER BY l1_batch_number ASC \
+                           LIMIT 1 \
+                             FOR UPDATE SKIP LOCKED \
+                       ) \
+             RETURNING leaf_aggregation_witness_jobs.*",
             &processing_timeout,
             max_attempts as i32,
             last_l1_batch_to_process as i64,
@@ -190,35 +200,40 @@ impl WitnessGeneratorDal<'_, '_> {
         {
             let processing_timeout = pg_interval_from_duration(processing_timeout);
             let record = sqlx::query!(
-                "
-                UPDATE node_aggregation_witness_jobs
-                SET status = 'in_progress', attempts = attempts + 1,
-                    updated_at = now(), processing_started_at = now()
-                WHERE l1_batch_number = (
-                        SELECT l1_batch_number
-                        FROM node_aggregation_witness_jobs
-                        WHERE l1_batch_number <= $3
-                        AND
-                        (   status = 'queued'
-                            OR (status = 'in_progress' AND processing_started_at < now() - $1::interval)
-                            OR (status = 'failed' AND attempts < $2)
-                        )
-                        AND protocol_version = ANY($4)
-                        ORDER BY l1_batch_number ASC
-                        LIMIT 1
-                        FOR UPDATE
-                        SKIP LOCKED
-                )
-                RETURNING node_aggregation_witness_jobs.*
-            ",
+                "   UPDATE node_aggregation_witness_jobs \
+                       SET status = 'in_progress', \
+                           attempts = attempts + 1, \
+                           updated_at = NOW(), \
+                           processing_started_at = NOW() \
+                     WHERE l1_batch_number = ( \
+                              SELECT l1_batch_number \
+                                FROM node_aggregation_witness_jobs \
+                               WHERE l1_batch_number <= $3 \
+                                 AND ( \
+                                     status = 'queued' \
+                                  OR ( \
+                                     status = 'in_progress' \
+                                 AND processing_started_at < NOW() - $1::INTERVAL \
+                                     ) \
+                                  OR ( \
+                                     status = 'failed' \
+                                 AND attempts < $2 \
+                                     ) \
+                                     ) \
+                                 AND protocol_version = ANY ($4) \
+                            ORDER BY l1_batch_number ASC \
+                               LIMIT 1 \
+                                 FOR UPDATE SKIP LOCKED \
+                           ) \
+                 RETURNING node_aggregation_witness_jobs.*",
                 &processing_timeout,
                 max_attempts as i32,
                 last_l1_batch_to_process as i64,
                 &protocol_versions[..],
             )
-                .fetch_optional(self.storage.conn())
-                .await
-                .unwrap();
+            .fetch_optional(self.storage.conn())
+            .await
+            .unwrap();
             if let Some(row) = record {
                 let l1_batch_number = L1BatchNumber(row.l1_batch_number as u32);
                 let number_of_leaf_circuits = row.number_of_leaf_circuits.expect("number_of_leaf_circuits is not found in a `queued` `node_aggregation_witness_jobs` job");
@@ -260,27 +275,32 @@ impl WitnessGeneratorDal<'_, '_> {
         {
             let processing_timeout = pg_interval_from_duration(processing_timeout);
             let record = sqlx::query!(
-                "
-                UPDATE scheduler_witness_jobs
-                SET status = 'in_progress', attempts = attempts + 1,
-                    updated_at = now(), processing_started_at = now()
-                WHERE l1_batch_number = (
-                    SELECT l1_batch_number
-                    FROM scheduler_witness_jobs
-                    WHERE l1_batch_number <= $3
-                    AND
-                    (   status = 'queued'
-                        OR (status = 'in_progress' AND processing_started_at < now() - $1::interval)
-                        OR (status = 'failed' AND attempts < $2)
-                    )
-                    AND protocol_version = ANY($4)
-                    ORDER BY l1_batch_number ASC
-                    LIMIT 1
-                    FOR UPDATE
-                    SKIP LOCKED
-                )
-                RETURNING scheduler_witness_jobs.*
-                ",
+                "   UPDATE scheduler_witness_jobs \
+                       SET status = 'in_progress', \
+                           attempts = attempts + 1, \
+                           updated_at = NOW(), \
+                           processing_started_at = NOW() \
+                     WHERE l1_batch_number = ( \
+                              SELECT l1_batch_number \
+                                FROM scheduler_witness_jobs \
+                               WHERE l1_batch_number <= $3 \
+                                 AND ( \
+                                     status = 'queued' \
+                                  OR ( \
+                                     status = 'in_progress' \
+                                 AND processing_started_at < NOW() - $1::INTERVAL \
+                                     ) \
+                                  OR ( \
+                                     status = 'failed' \
+                                 AND attempts < $2 \
+                                     ) \
+                                     ) \
+                                 AND protocol_version = ANY ($4) \
+                            ORDER BY l1_batch_number ASC \
+                               LIMIT 1 \
+                                 FOR UPDATE SKIP LOCKED \
+                           ) \
+                 RETURNING scheduler_witness_jobs.*",
                 &processing_timeout,
                 max_attempts as i32,
                 last_l1_batch_to_process as i64,
@@ -323,26 +343,30 @@ impl WitnessGeneratorDal<'_, '_> {
     ) -> Vec<Proof<Bn256, ZkSyncCircuit<Bn256, VmWitnessOracle<Bn256>>>> {
         {
             sqlx::query!(
-                        "
-                        SELECT circuit_type, result from prover_jobs
-                        WHERE l1_batch_number = $1 AND status = 'successful' AND aggregation_round = $2
-                        ORDER BY sequence_number ASC;
-                        ",
-                        block_number.0 as i64,
-                        aggregation_round as i64
-                )
-                .fetch_all(self.storage.conn())
-                .await
-                .unwrap()
-                .into_iter()
-                .map(|row| {
-                    ZkSyncProof::into_proof(bincode::deserialize::<ZkSyncProof<Bn256>>(
+                "  SELECT circuit_type, \
+                                  result \
+                             FROM prover_jobs \
+                            WHERE l1_batch_number = $1 \
+                              AND status = 'successful' \
+                              AND aggregation_round = $2 \
+                         ORDER BY sequence_number ASC;",
+                block_number.0 as i64,
+                aggregation_round as i64
+            )
+            .fetch_all(self.storage.conn())
+            .await
+            .unwrap()
+            .into_iter()
+            .map(|row| {
+                ZkSyncProof::into_proof(
+                    bincode::deserialize::<ZkSyncProof<Bn256>>(
                         &row.result
                             .expect("prove_job with `successful` status has no result"),
                     )
-                        .expect("cannot deserialize proof"))
-                })
-                .collect::<Vec<Proof<Bn256, ZkSyncCircuit<Bn256, VmWitnessOracle<Bn256>>>>>()
+                    .expect("cannot deserialize proof"),
+                )
+            })
+            .collect::<Vec<Proof<Bn256, ZkSyncCircuit<Bn256, VmWitnessOracle<Bn256>>>>>()
         }
     }
 
@@ -473,30 +497,35 @@ impl WitnessGeneratorDal<'_, '_> {
             let latency = MethodLatency::new("create_aggregation_jobs");
 
             sqlx::query!(
-                    "
-                    INSERT INTO leaf_aggregation_witness_jobs
-                        (l1_batch_number, basic_circuits, basic_circuits_inputs, basic_circuits_blob_url, basic_circuits_inputs_blob_url, number_of_basic_circuits, protocol_version, status, created_at, updated_at)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, 'waiting_for_proofs', now(), now())
-                    ",
-                    block_number.0 as i64,
+                "INSERT INTO leaf_aggregation_witness_jobs ( \
+                            l1_batch_number, \
+                            basic_circuits, \
+                            basic_circuits_inputs, \
+                            basic_circuits_blob_url, \
+                            basic_circuits_inputs_blob_url, \
+                            number_of_basic_circuits, \
+                            protocol_version, \
+                            status, \
+                            created_at, \
+                            updated_at \
+                            ) \
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, 'waiting_for_proofs', NOW(), NOW())",
+                block_number.0 as i64,
                 // TODO(SMA-1476): remove the below columns once blob is migrated to GCS.
-                    vec![],
-                    vec![],
-                    basic_circuits_blob_url,
-                    basic_circuits_inputs_blob_url,
-                    number_of_basic_circuits as i64,
-                    protocol_version,
-                )
-                .execute(self.storage.conn())
-                .await
-                .unwrap();
+                vec![],
+                vec![],
+                basic_circuits_blob_url,
+                basic_circuits_inputs_blob_url,
+                number_of_basic_circuits as i64,
+                protocol_version,
+            )
+            .execute(self.storage.conn())
+            .await
+            .unwrap();
 
             sqlx::query!(
-                "
-                    INSERT INTO node_aggregation_witness_jobs
-                        (l1_batch_number, protocol_version, status, created_at, updated_at)
-                    VALUES ($1, $2, 'waiting_for_artifacts', now(), now())
-                    ",
+                "INSERT INTO node_aggregation_witness_jobs (l1_batch_number, protocol_version, status, created_at, updated_at) \
+                 VALUES ($1, $2, 'waiting_for_artifacts', NOW(), NOW())",
                 block_number.0 as i64,
                 protocol_version,
             )
@@ -505,20 +534,25 @@ impl WitnessGeneratorDal<'_, '_> {
             .unwrap();
 
             sqlx::query!(
-                "
-                    INSERT INTO scheduler_witness_jobs
-                        (l1_batch_number, scheduler_witness, scheduler_witness_blob_url, protocol_version, status, created_at, updated_at)
-                    VALUES ($1, $2, $3, $4, 'waiting_for_artifacts', now(), now())
-                    ",
+                "INSERT INTO scheduler_witness_jobs ( \
+                        l1_batch_number, \
+                        scheduler_witness, \
+                        scheduler_witness_blob_url, \
+                        protocol_version, \
+                        status, \
+                        created_at, \
+                        updated_at \
+                        ) \
+                 VALUES ($1, $2, $3, $4, 'waiting_for_artifacts', NOW(), NOW())",
                 block_number.0 as i64,
                 // TODO(SMA-1476): remove the below column once blob is migrated to GCS.
                 vec![],
                 scheduler_witness_blob_url,
                 protocol_version,
             )
-                .execute(self.storage.conn())
-                .await
-                .unwrap();
+            .execute(self.storage.conn())
+            .await
+            .unwrap();
 
             drop(latency);
         }
@@ -538,15 +572,14 @@ impl WitnessGeneratorDal<'_, '_> {
     ) {
         {
             sqlx::query!(
-                "
-                    UPDATE node_aggregation_witness_jobs
-                        SET number_of_leaf_circuits = $1,
-                            leaf_layer_subqueues_blob_url = $3,
-                            aggregation_outputs_blob_url = $4,
-                            status = 'waiting_for_proofs',
-                            updated_at = now()
-                    WHERE l1_batch_number = $2 AND status != 'queued'
-                    ",
+                "UPDATE node_aggregation_witness_jobs \
+                    SET number_of_leaf_circuits = $1, \
+                        leaf_layer_subqueues_blob_url = $3, \
+                        aggregation_outputs_blob_url = $4, \
+                        status = 'waiting_for_proofs', \
+                        updated_at = NOW() \
+                  WHERE l1_batch_number = $2 \
+                    AND status != 'queued'",
                 number_of_leaf_circuits as i64,
                 l1_batch_number.0 as i64,
                 leaf_layer_subqueues_blob_url,
@@ -572,13 +605,12 @@ impl WitnessGeneratorDal<'_, '_> {
     ) {
         {
             sqlx::query!(
-                "
-                    UPDATE scheduler_witness_jobs
-                        SET final_node_aggregations_blob_url = $2,
-                         status = 'waiting_for_proofs',
-                         updated_at = now()
-                    WHERE l1_batch_number = $1 AND status != 'queued'
-                    ",
+                "UPDATE scheduler_witness_jobs \
+                    SET final_node_aggregations_blob_url = $2, \
+                        status = 'waiting_for_proofs', \
+                        updated_at = NOW() \
+                  WHERE l1_batch_number = $1 \
+                    AND status != 'queued'",
                 block_number.0 as i64,
                 node_aggregations_blob_url,
             )
@@ -600,12 +632,10 @@ impl WitnessGeneratorDal<'_, '_> {
                 bincode::serialize(&aggregation_result_coords)
                     .expect("cannot serialize aggregation_result_coords");
             sqlx::query!(
-                "
-                    UPDATE scheduler_witness_jobs
-                        SET aggregation_result_coords = $1,
-                            updated_at = now()
-                    WHERE l1_batch_number = $2
-                    ",
+                "UPDATE scheduler_witness_jobs \
+                    SET aggregation_result_coords = $1, \
+                        updated_at = NOW() \
+                  WHERE l1_batch_number = $2",
                 aggregation_result_coords_serialized,
                 block_number.0 as i64,
             )
@@ -727,27 +757,35 @@ impl WitnessGeneratorDal<'_, '_> {
     ) {
         {
             sqlx::query!(
-                "INSERT INTO witness_inputs(l1_batch_number, merkle_tree_paths, merkel_tree_paths_blob_url, status, protocol_version, created_at, updated_at) \
-                 VALUES ($1, $2, $3, 'waiting_for_artifacts', $4, now(), now()) \
-                 ON CONFLICT (l1_batch_number) DO NOTHING",
+                "INSERT INTO witness_inputs ( \
+                        l1_batch_number, \
+                        merkle_tree_paths, \
+                        merkel_tree_paths_blob_url, \
+                        status, \
+                        protocol_version, \
+                        created_at, \
+                        updated_at \
+                        ) \
+                 VALUES ($1, $2, $3, 'waiting_for_artifacts', $4, NOW(), NOW()) \
+                     ON CONFLICT (l1_batch_number) DO NOTHING",
                 block_number.0 as i64,
                 // TODO(SMA-1476): remove the below column once blob is migrated to GCS.
                 vec![],
                 object_key,
                 protocol_version.map(|v| v as i32),
             )
-                .fetch_optional(self.storage.conn())
-                .await
-                .unwrap();
+            .fetch_optional(self.storage.conn())
+            .await
+            .unwrap();
         }
     }
 
     pub async fn mark_witness_inputs_job_as_queued(&mut self, block_number: L1BatchNumber) {
         sqlx::query!(
             "UPDATE witness_inputs \
-            SET status='queued' \
-            WHERE l1_batch_number=$1 \
-                AND status='waiting_for_artifacts'",
+                SET status = 'queued' \
+              WHERE l1_batch_number = $1 \
+                AND status = 'waiting_for_artifacts'",
             block_number.0 as i64,
         )
         .execute(self.storage.conn())
@@ -761,19 +799,20 @@ impl WitnessGeneratorDal<'_, '_> {
     ) -> Vec<(i64, (String, String))> {
         {
             let job_ids = sqlx::query!(
-                r#"
-                    SELECT l1_batch_number, leaf_layer_subqueues_blob_url, aggregation_outputs_blob_url FROM node_aggregation_witness_jobs
-                    WHERE status='successful'
-                    AND leaf_layer_subqueues_blob_url is NOT NULL
-                    AND aggregation_outputs_blob_url is NOT NULL
-                    AND updated_at < NOW() - INTERVAL '30 days'
-                    LIMIT $1;
-                "#,
+                "SELECT l1_batch_number, \
+                        leaf_layer_subqueues_blob_url, \
+                        aggregation_outputs_blob_url \
+                   FROM node_aggregation_witness_jobs \
+                  WHERE status = 'successful' \
+                    AND leaf_layer_subqueues_blob_url IS NOT NULL \
+                    AND aggregation_outputs_blob_url IS NOT NULL \
+                    AND updated_at < NOW() - INTERVAL '30 days' \
+                  LIMIT $1;",
                 limit as i32
             )
-                .fetch_all(self.storage.conn())
-                .await
-                .unwrap();
+            .fetch_all(self.storage.conn())
+            .await
+            .unwrap();
             job_ids
                 .into_iter()
                 .map(|row| {
@@ -795,19 +834,20 @@ impl WitnessGeneratorDal<'_, '_> {
     ) -> Vec<(i64, (String, String))> {
         {
             let job_ids = sqlx::query!(
-                r#"
-                    SELECT l1_batch_number, scheduler_witness_blob_url, final_node_aggregations_blob_url FROM scheduler_witness_jobs
-                    WHERE status='successful'
-                    AND updated_at < NOW() - INTERVAL '30 days'
-                    AND scheduler_witness_blob_url is NOT NULL
-                    AND final_node_aggregations_blob_url is NOT NULL
-                    LIMIT $1;
-                "#,
+                "SELECT l1_batch_number, \
+                        scheduler_witness_blob_url, \
+                        final_node_aggregations_blob_url \
+                   FROM scheduler_witness_jobs \
+                  WHERE status = 'successful' \
+                    AND updated_at < NOW() - INTERVAL '30 days' \
+                    AND scheduler_witness_blob_url IS NOT NULL \
+                    AND final_node_aggregations_blob_url IS NOT NULL \
+                  LIMIT $1;",
                 limit as i32
             )
-                .fetch_all(self.storage.conn())
-                .await
-                .unwrap();
+            .fetch_all(self.storage.conn())
+            .await
+            .unwrap();
             job_ids
                 .into_iter()
                 .map(|row| {
@@ -826,20 +866,20 @@ impl WitnessGeneratorDal<'_, '_> {
     pub async fn move_leaf_aggregation_jobs_from_waiting_to_queued(&mut self) -> Vec<i64> {
         {
             sqlx::query!(
-                r#"
-                UPDATE leaf_aggregation_witness_jobs
-                SET status='queued'
-                WHERE l1_batch_number IN
-                      (SELECT prover_jobs.l1_batch_number
-                       FROM prover_jobs
-                                JOIN leaf_aggregation_witness_jobs lawj ON prover_jobs.l1_batch_number = lawj.l1_batch_number
-                       WHERE lawj.status = 'waiting_for_proofs'
-                         AND prover_jobs.status = 'successful'
-                         AND prover_jobs.aggregation_round = 0
-                       GROUP BY prover_jobs.l1_batch_number, lawj.number_of_basic_circuits
-                       HAVING COUNT(*) = lawj.number_of_basic_circuits)
-                RETURNING l1_batch_number;
-            "#,
+                "   UPDATE leaf_aggregation_witness_jobs \
+                       SET status = 'queued' \
+                     WHERE l1_batch_number IN ( \
+                              SELECT prover_jobs.l1_batch_number \
+                                FROM prover_jobs \
+                                JOIN leaf_aggregation_witness_jobs lawj ON prover_jobs.l1_batch_number = lawj.l1_batch_number \
+                               WHERE lawj.status = 'waiting_for_proofs' \
+                                 AND prover_jobs.status = 'successful' \
+                                 AND prover_jobs.aggregation_round = 0 \
+                            GROUP BY prover_jobs.l1_batch_number, \
+                                     lawj.number_of_basic_circuits \
+                              HAVING COUNT(*) = lawj.number_of_basic_circuits \
+                           ) \
+                 RETURNING l1_batch_number;",
             )
             .fetch_all(self.storage.conn())
             .await
@@ -853,20 +893,20 @@ impl WitnessGeneratorDal<'_, '_> {
     pub async fn move_node_aggregation_jobs_from_waiting_to_queued(&mut self) -> Vec<i64> {
         {
             sqlx::query!(
-                r#"
-                UPDATE node_aggregation_witness_jobs
-                SET status='queued'
-                WHERE l1_batch_number IN
-                      (SELECT prover_jobs.l1_batch_number
-                       FROM prover_jobs
-                                JOIN node_aggregation_witness_jobs nawj ON prover_jobs.l1_batch_number = nawj.l1_batch_number
-                       WHERE nawj.status = 'waiting_for_proofs'
-                         AND prover_jobs.status = 'successful'
-                         AND prover_jobs.aggregation_round = 1
-                       GROUP BY prover_jobs.l1_batch_number, nawj.number_of_leaf_circuits
-                       HAVING COUNT(*) = nawj.number_of_leaf_circuits)
-                RETURNING l1_batch_number;
-            "#,
+                "   UPDATE node_aggregation_witness_jobs \
+                       SET status = 'queued' \
+                     WHERE l1_batch_number IN ( \
+                              SELECT prover_jobs.l1_batch_number \
+                                FROM prover_jobs \
+                                JOIN node_aggregation_witness_jobs nawj ON prover_jobs.l1_batch_number = nawj.l1_batch_number \
+                               WHERE nawj.status = 'waiting_for_proofs' \
+                                 AND prover_jobs.status = 'successful' \
+                                 AND prover_jobs.aggregation_round = 1 \
+                            GROUP BY prover_jobs.l1_batch_number, \
+                                     nawj.number_of_leaf_circuits \
+                              HAVING COUNT(*) = nawj.number_of_leaf_circuits \
+                           ) \
+                 RETURNING l1_batch_number;",
             )
             .fetch_all(self.storage.conn())
             .await
@@ -882,20 +922,19 @@ impl WitnessGeneratorDal<'_, '_> {
             // There is always just one final node circuit
             // hence we do AND p.number_of_jobs = 1
             sqlx::query!(
-                r#"
-                UPDATE scheduler_witness_jobs
-                SET status='queued'
-                WHERE l1_batch_number IN
-                      (SELECT prover_jobs.l1_batch_number
-                       FROM prover_jobs
-                                JOIN scheduler_witness_jobs swj ON prover_jobs.l1_batch_number = swj.l1_batch_number
-                       WHERE swj.status = 'waiting_for_proofs'
-                         AND prover_jobs.status = 'successful'
-                         AND prover_jobs.aggregation_round = 2
-                       GROUP BY prover_jobs.l1_batch_number
-                       HAVING COUNT(*) = 1)
-                RETURNING l1_batch_number;
-            "#,
+                "   UPDATE scheduler_witness_jobs \
+                       SET status = 'queued' \
+                     WHERE l1_batch_number IN ( \
+                              SELECT prover_jobs.l1_batch_number \
+                                FROM prover_jobs \
+                                JOIN scheduler_witness_jobs swj ON prover_jobs.l1_batch_number = swj.l1_batch_number \
+                               WHERE swj.status = 'waiting_for_proofs' \
+                                 AND prover_jobs.status = 'successful' \
+                                 AND prover_jobs.aggregation_round = 2 \
+                            GROUP BY prover_jobs.l1_batch_number \
+                              HAVING COUNT(*) = 1 \
+                           ) \
+                 RETURNING l1_batch_number;",
             )
             .fetch_all(self.storage.conn())
             .await
@@ -911,11 +950,9 @@ impl WitnessGeneratorDal<'_, '_> {
         l1_batch_number: L1BatchNumber,
     ) -> Option<i32> {
         sqlx::query!(
-            r#"
-                SELECT protocol_version
-                FROM witness_inputs
-                WHERE l1_batch_number = $1
-                "#,
+            "SELECT protocol_version \
+               FROM witness_inputs \
+              WHERE l1_batch_number = $1",
             l1_batch_number.0 as i64,
         )
         .fetch_one(self.storage.conn())

@@ -26,25 +26,45 @@ impl ProtocolVersionsDal<'_, '_> {
         tx_hash: Option<H256>,
     ) {
         sqlx::query!(
-                "INSERT INTO protocol_versions \
-                    (id, timestamp, recursion_scheduler_level_vk_hash, recursion_node_level_vk_hash, \
-                        recursion_leaf_level_vk_hash, recursion_circuits_set_vks_hash, bootloader_code_hash, \
-                        default_account_code_hash, verifier_address, upgrade_tx_hash, created_at) \
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, now())",
-                id as i32,
-                timestamp as i64,
-                l1_verifier_config.recursion_scheduler_level_vk_hash.as_bytes(),
-                l1_verifier_config.params.recursion_node_level_vk_hash.as_bytes(),
-                l1_verifier_config.params.recursion_leaf_level_vk_hash.as_bytes(),
-                l1_verifier_config.params.recursion_circuits_set_vks_hash.as_bytes(),
-                base_system_contracts_hashes.bootloader.as_bytes(),
-                base_system_contracts_hashes.default_aa.as_bytes(),
-                verifier_address.as_bytes(),
-                tx_hash.map(|tx_hash| tx_hash.0.to_vec()),
-            )
-            .execute(self.storage.conn())
-            .await
-            .unwrap();
+            "INSERT INTO protocol_versions ( \
+                        id, \
+                        TIMESTAMP, \
+                        recursion_scheduler_level_vk_hash, \
+                        recursion_node_level_vk_hash, \
+                        recursion_leaf_level_vk_hash, \
+                        recursion_circuits_set_vks_hash, \
+                        bootloader_code_hash, \
+                        default_account_code_hash, \
+                        verifier_address, \
+                        upgrade_tx_hash, \
+                        created_at \
+                        ) \
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())",
+            id as i32,
+            timestamp as i64,
+            l1_verifier_config
+                .recursion_scheduler_level_vk_hash
+                .as_bytes(),
+            l1_verifier_config
+                .params
+                .recursion_node_level_vk_hash
+                .as_bytes(),
+            l1_verifier_config
+                .params
+                .recursion_leaf_level_vk_hash
+                .as_bytes(),
+            l1_verifier_config
+                .params
+                .recursion_circuits_set_vks_hash
+                .as_bytes(),
+            base_system_contracts_hashes.bootloader.as_bytes(),
+            base_system_contracts_hashes.default_aa.as_bytes(),
+            verifier_address.as_bytes(),
+            tx_hash.map(|tx_hash| tx_hash.0.to_vec()),
+        )
+        .execute(self.storage.conn())
+        .await
+        .unwrap();
     }
 
     pub async fn save_protocol_version_with_tx(&mut self, version: ProtocolVersion) {
@@ -75,22 +95,43 @@ impl ProtocolVersionsDal<'_, '_> {
 
     pub async fn save_prover_protocol_version(&mut self, version: ProtocolVersion) {
         sqlx::query!(
-                "INSERT INTO prover_protocol_versions
-                    (id, timestamp, recursion_scheduler_level_vk_hash, recursion_node_level_vk_hash,
-                        recursion_leaf_level_vk_hash, recursion_circuits_set_vks_hash, verifier_address, created_at)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, now())
-                ",
-                version.id as i32,
-                version.timestamp as i64,
-                version.l1_verifier_config.recursion_scheduler_level_vk_hash.as_bytes(),
-                version.l1_verifier_config.params.recursion_node_level_vk_hash.as_bytes(),
-                version.l1_verifier_config.params.recursion_leaf_level_vk_hash.as_bytes(),
-                version.l1_verifier_config.params.recursion_circuits_set_vks_hash.as_bytes(),
-                version.verifier_address.as_bytes(),
-            )
-            .execute(self.storage.conn())
-            .await
-            .unwrap();
+            "INSERT INTO prover_protocol_versions ( \
+                        id, \
+                        TIMESTAMP, \
+                        recursion_scheduler_level_vk_hash, \
+                        recursion_node_level_vk_hash, \
+                        recursion_leaf_level_vk_hash, \
+                        recursion_circuits_set_vks_hash, \
+                        verifier_address, \
+                        created_at \
+                        ) \
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())",
+            version.id as i32,
+            version.timestamp as i64,
+            version
+                .l1_verifier_config
+                .recursion_scheduler_level_vk_hash
+                .as_bytes(),
+            version
+                .l1_verifier_config
+                .params
+                .recursion_node_level_vk_hash
+                .as_bytes(),
+            version
+                .l1_verifier_config
+                .params
+                .recursion_leaf_level_vk_hash
+                .as_bytes(),
+            version
+                .l1_verifier_config
+                .params
+                .recursion_circuits_set_vks_hash
+                .as_bytes(),
+            version.verifier_address.as_bytes(),
+        )
+        .execute(self.storage.conn())
+        .await
+        .unwrap();
     }
 
     pub async fn base_system_contracts_by_timestamp(
@@ -98,11 +139,13 @@ impl ProtocolVersionsDal<'_, '_> {
         current_timestamp: u64,
     ) -> (BaseSystemContracts, ProtocolVersionId) {
         let row = sqlx::query!(
-            "SELECT bootloader_code_hash, default_account_code_hash, id FROM protocol_versions
-                WHERE timestamp <= $1
-                ORDER BY id DESC
-                LIMIT 1
-            ",
+            "  SELECT bootloader_code_hash, \
+                      default_account_code_hash, \
+                      id \
+                 FROM protocol_versions \
+                WHERE TIMESTAMP <= $1 \
+             ORDER BY id DESC \
+                LIMIT 1",
             current_timestamp as i64
         )
         .fetch_one(self.storage.conn())
@@ -124,9 +167,10 @@ impl ProtocolVersionsDal<'_, '_> {
         version_id: u16,
     ) -> Option<BaseSystemContracts> {
         let row = sqlx::query!(
-            "SELECT bootloader_code_hash, default_account_code_hash FROM protocol_versions
-                WHERE id = $1
-            ",
+            "SELECT bootloader_code_hash, \
+                    default_account_code_hash \
+               FROM protocol_versions \
+              WHERE id = $1",
             version_id as i32
         )
         .fetch_optional(self.storage.conn())
@@ -153,11 +197,11 @@ impl ProtocolVersionsDal<'_, '_> {
     ) -> Option<ProtocolVersion> {
         let storage_protocol_version: StorageProtocolVersion = sqlx::query_as!(
             StorageProtocolVersion,
-            "SELECT * FROM protocol_versions
-                WHERE id < $1
-                ORDER BY id DESC
-                LIMIT 1
-            ",
+            "  SELECT * \
+                 FROM protocol_versions \
+                WHERE id < $1 \
+             ORDER BY id DESC \
+                LIMIT 1",
             version_id as i32
         )
         .fetch_optional(self.storage.conn())
@@ -176,7 +220,9 @@ impl ProtocolVersionsDal<'_, '_> {
     ) -> Option<ProtocolVersion> {
         let storage_protocol_version: StorageProtocolVersion = sqlx::query_as!(
             StorageProtocolVersion,
-            "SELECT * FROM protocol_versions WHERE id = $1",
+            "SELECT * \
+               FROM protocol_versions \
+              WHERE id = $1",
             version_id as i32
         )
         .fetch_optional(self.storage.conn())
@@ -192,15 +238,17 @@ impl ProtocolVersionsDal<'_, '_> {
         version_id: ProtocolVersionId,
     ) -> Option<L1VerifierConfig> {
         let row = sqlx::query!(
-            "SELECT recursion_scheduler_level_vk_hash, recursion_node_level_vk_hash, recursion_leaf_level_vk_hash, recursion_circuits_set_vks_hash
-                FROM protocol_versions
-                WHERE id = $1
-            ",
+            "SELECT recursion_scheduler_level_vk_hash, \
+                    recursion_node_level_vk_hash, \
+                    recursion_leaf_level_vk_hash, \
+                    recursion_circuits_set_vks_hash \
+               FROM protocol_versions \
+              WHERE id = $1",
             version_id as i32
         )
-            .fetch_optional(self.storage.conn())
-            .await
-            .unwrap()?;
+        .fetch_optional(self.storage.conn())
+        .await
+        .unwrap()?;
         Some(L1VerifierConfig {
             params: VerifierParams {
                 recursion_node_level_vk_hash: H256::from_slice(&row.recursion_node_level_vk_hash),
@@ -239,10 +287,9 @@ impl ProtocolVersionsDal<'_, '_> {
         protocol_version_id: ProtocolVersionId,
     ) -> Option<ProtocolUpgradeTx> {
         let row = sqlx::query!(
-            "
-                SELECT upgrade_tx_hash FROM protocol_versions
-                WHERE id = $1
-            ",
+            "SELECT upgrade_tx_hash \
+               FROM protocol_versions \
+              WHERE id = $1",
             protocol_version_id as i32
         )
         .fetch_optional(self.storage.conn())
@@ -273,14 +320,12 @@ impl ProtocolVersionsDal<'_, '_> {
         vk_commitments: &L1VerifierConfig,
     ) -> Vec<ProtocolVersionId> {
         sqlx::query!(
-            r#"
-                SELECT id
-                FROM prover_protocol_versions
-                WHERE recursion_circuits_set_vks_hash = $1
-                AND recursion_leaf_level_vk_hash = $2
-                AND recursion_node_level_vk_hash = $3
-                AND recursion_scheduler_level_vk_hash = $4
-               "#,
+            "SELECT id \
+               FROM prover_protocol_versions \
+              WHERE recursion_circuits_set_vks_hash = $1 \
+                AND recursion_leaf_level_vk_hash = $2 \
+                AND recursion_node_level_vk_hash = $3 \
+                AND recursion_scheduler_level_vk_hash = $4",
             vk_commitments
                 .params
                 .recursion_circuits_set_vks_hash
@@ -305,8 +350,9 @@ impl ProtocolVersionsDal<'_, '_> {
 
     pub async fn prover_protocol_version_exists(&mut self, id: ProtocolVersionId) -> bool {
         sqlx::query!(
-            "SELECT COUNT(*) as \"count!\" FROM prover_protocol_versions \
-            WHERE id = $1",
+            "SELECT COUNT(*) AS \"count!\" \
+               FROM prover_protocol_versions \
+              WHERE id = $1",
             id as i32
         )
         .fetch_one(self.storage.conn())
