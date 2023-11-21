@@ -344,12 +344,12 @@ impl WitnessGeneratorDal<'_, '_> {
         {
             sqlx::query!(
                 "  SELECT circuit_type, \
-                                  result \
-                             FROM prover_jobs \
-                            WHERE l1_batch_number = $1 \
-                              AND status = 'successful' \
-                              AND aggregation_round = $2 \
-                         ORDER BY sequence_number ASC;",
+                          result \
+                     FROM prover_jobs \
+                    WHERE l1_batch_number = $1 \
+                      AND status = 'successful' \
+                      AND aggregation_round = $2 \
+                 ORDER BY sequence_number ASC;",
                 block_number.0 as i64,
                 aggregation_round as i64
             )
@@ -498,18 +498,18 @@ impl WitnessGeneratorDal<'_, '_> {
 
             sqlx::query!(
                 "INSERT INTO leaf_aggregation_witness_jobs ( \
-                            l1_batch_number, \
-                            basic_circuits, \
-                            basic_circuits_inputs, \
-                            basic_circuits_blob_url, \
-                            basic_circuits_inputs_blob_url, \
-                            number_of_basic_circuits, \
-                            protocol_version, \
-                            status, \
-                            created_at, \
-                            updated_at \
-                            ) \
-                     VALUES ($1, $2, $3, $4, $5, $6, $7, 'waiting_for_proofs', NOW(), NOW())",
+                        l1_batch_number, \
+                        basic_circuits, \
+                        basic_circuits_inputs, \
+                        basic_circuits_blob_url, \
+                        basic_circuits_inputs_blob_url, \
+                        number_of_basic_circuits, \
+                        protocol_version, \
+                        status, \
+                        created_at, \
+                        updated_at \
+                        ) \
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, 'waiting_for_proofs', NOW(), NOW())",
                 block_number.0 as i64,
                 // TODO(SMA-1476): remove the below columns once blob is migrated to GCS.
                 vec![],
