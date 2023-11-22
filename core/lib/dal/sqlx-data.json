@@ -301,98 +301,6 @@
     },
     "query": "   UPDATE node_aggregation_witness_jobs SET status = 'in_progress', attempts = attempts + 1, updated_at = NOW(), processing_started_at = NOW() WHERE l1_batch_number = ( SELECT l1_batch_number FROM node_aggregation_witness_jobs WHERE l1_batch_number <= $3 AND ( status = 'queued' OR ( status = 'in_progress' AND processing_started_at < NOW() - $1::INTERVAL ) OR ( status = 'failed' AND attempts < $2 ) ) AND protocol_version = ANY ($4) ORDER BY l1_batch_number ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING node_aggregation_witness_jobs.*"
   },
-  "08c94ce4ce5fabf7634fd2cee649c7e3bbb3b1aa27fb085707ac915f5f9a1620": {
-    "describe": {
-      "columns": [
-        {
-          "name": "miniblock_number",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "log_index_in_miniblock",
-          "ordinal": 1,
-          "type_info": "Int4"
-        },
-        {
-          "name": "log_index_in_tx",
-          "ordinal": 2,
-          "type_info": "Int4"
-        },
-        {
-          "name": "tx_hash",
-          "ordinal": 3,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "block_hash",
-          "ordinal": 4,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l1_batch_number?",
-          "ordinal": 5,
-          "type_info": "Int8"
-        },
-        {
-          "name": "shard_id",
-          "ordinal": 6,
-          "type_info": "Int4"
-        },
-        {
-          "name": "is_service",
-          "ordinal": 7,
-          "type_info": "Bool"
-        },
-        {
-          "name": "tx_index_in_miniblock",
-          "ordinal": 8,
-          "type_info": "Int4"
-        },
-        {
-          "name": "tx_index_in_l1_batch",
-          "ordinal": 9,
-          "type_info": "Int4"
-        },
-        {
-          "name": "sender",
-          "ordinal": 10,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "key",
-          "ordinal": 11,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "value",
-          "ordinal": 12,
-          "type_info": "Bytea"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        null,
-        null,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Bytea"
-        ]
-      }
-    },
-    "query": "  SELECT miniblock_number, log_index_in_miniblock, log_index_in_tx, tx_hash, NULL::bytea AS \"block_hash\", NULL::BIGINT AS \"l1_batch_number?\", shard_id, is_service, tx_index_in_miniblock, tx_index_in_l1_batch, sender, KEY, value FROM l2_to_l1_logs WHERE tx_hash = $1 ORDER BY log_index_in_tx ASC"
-  },
   "0ab3189994c9cd68b29e2a3491db73fc955f82fbd784a899cd880a29ffd822f9": {
     "describe": {
       "columns": [
@@ -764,21 +672,19 @@
     },
     "query": "DELETE FROM eth_txs WHERE id >= ( SELECT MIN(id) FROM eth_txs WHERE has_failed = TRUE )"
   },
-  "13c7999e8174cf17f1a93c1000470ecc211213d73b39330c88eed0b0daaa4806": {
+  "13ee33f60b1cfc8fe8ea5825263349e6370be19edd210526d77c168fbc782ecc": {
     "describe": {
       "columns": [],
       "nullable": [],
       "parameters": {
         "Left": [
-          "ByteaArray",
-          "ByteaArray",
-          "ByteaArray",
-          "ByteaArray",
-          "ByteaArray"
+          "Bytea",
+          "Int8",
+          "Bytea"
         ]
       }
     },
-    "query": "INSERT INTO storage (hashed_key, address, KEY, value, tx_hash, created_at, updated_at) SELECT u.hashed_key, u.address, u.key, u.value, u.tx_hash, NOW(), NOW() FROM UNNEST($1::bytea[], $2::bytea[], $3::bytea[], $4::bytea[], $5::bytea[]) AS u (hashed_key, address, KEY, value, tx_hash) ON CONFLICT (hashed_key) DO UPDATE SET tx_hash = excluded.tx_hash, value = excluded.value, updated_at = NOW()"
+    "query": "DELETE FROM tokens WHERE l2_address IN ( SELECT SUBSTRING(key, 12, 20) FROM storage_logs WHERE storage_logs.address = $1 AND miniblock_number > $2 AND NOT EXISTS ( SELECT 1 FROM storage_logs AS s WHERE s.hashed_key = storage_logs.hashed_key AND (s.miniblock_number, s.operation_number) >= (storage_logs.miniblock_number, storage_logs.operation_number) AND s.value = $3 ) )"
   },
   "1456ec5e11978bca0150f85216e76a6c4abbadf4b74ed13ca904d53406a055a5": {
     "describe": {
@@ -1314,6 +1220,19 @@
       }
     },
     "query": "   UPDATE transactions SET in_mempool = TRUE FROM ( SELECT hash FROM ( SELECT hash FROM transactions WHERE miniblock_number IS NULL AND in_mempool = FALSE AND error IS NULL AND ( is_priority = TRUE OR ( max_fee_per_gas >= $2 AND gas_per_pubdata_limit >= $3 ) ) AND tx_format != $4 ORDER BY is_priority DESC, priority_op_id, received_at LIMIT $1 ) AS subquery1 ORDER BY hash ) AS subquery2 WHERE transactions.hash = subquery2.hash RETURNING transactions.*"
+  },
+  "184064f37d26353e68f89e72ea1851375aadd0b3a78c0665797d4851daefd373": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "ByteaArray",
+          "ByteaArray"
+        ]
+      }
+    },
+    "query": "UPDATE storage SET value = u.value FROM UNNEST($1::bytea[], $2::bytea[]) AS u (key, value) WHERE u.key = hashed_key"
   },
   "191fb8c0549267b515aaa7acc199675be1ea113e9137195468bb8ce64a099ae8": {
     "describe": {
@@ -2302,19 +2221,6 @@
     },
     "query": "SELECT COUNT(*) AS \"count!\" FROM contracts_verification_info WHERE address = $1"
   },
-  "2c831e9921b95a539082e4c885f17c72a65269431448b1ed1c44cc3e787a1b0d": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "ByteaArray",
-          "ByteaArray"
-        ]
-      }
-    },
-    "query": "UPDATE storage SET value = u.value FROM UNNEST($1::bytea[], $2::bytea[]) AS u (KEY, value) WHERE u.key = hashed_key"
-  },
   "2d509d4c163e880f643c9a3e0c085bb3f89446191891c0409a04512b0502bc9e": {
     "describe": {
       "columns": [],
@@ -3265,6 +3171,38 @@
       }
     },
     "query": "INSERT INTO transaction_traces (tx_hash, trace, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())"
+  },
+  "446a8c1a50e0bcc70e41025444d3c4decd4bbcb53f4661ab350cfaaf9630014e": {
+    "describe": {
+      "columns": [
+        {
+          "name": "address",
+          "ordinal": 0,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "key",
+          "ordinal": 1,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "value",
+          "ordinal": 2,
+          "type_info": "Bytea"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "  SELECT address, key, value FROM storage_logs WHERE miniblock_number BETWEEN ( SELECT MIN(number) FROM miniblocks WHERE l1_batch_number = $1 ) AND ( SELECT MAX(number) FROM miniblocks WHERE l1_batch_number = $1 ) ORDER BY miniblock_number, operation_number"
   },
   "44f65a50bbeac26f370b4a6bd2043f3334eae582cd4f9f0bd3e5759c64d7a6bd": {
     "describe": {
@@ -4540,6 +4478,22 @@
     },
     "query": "UPDATE node_aggregation_witness_jobs_fri SET status = 'failed', error = $1, updated_at = NOW() WHERE id = $2"
   },
+  "626d6826a0541f759f581993a0d94c7829b4a14f4bd1e84b766bc9bac7a409f1": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "ByteaArray",
+          "ByteaArray",
+          "ByteaArray",
+          "ByteaArray",
+          "ByteaArray"
+        ]
+      }
+    },
+    "query": "INSERT INTO storage (hashed_key, address, key, value, tx_hash, created_at, updated_at) SELECT u.hashed_key, u.address, u.key, u.value, u.tx_hash, NOW(), NOW() FROM UNNEST($1::bytea[], $2::bytea[], $3::bytea[], $4::bytea[], $5::bytea[]) AS u (hashed_key, address, key, value, tx_hash) ON CONFLICT (hashed_key) DO UPDATE SET tx_hash = excluded.tx_hash, value = excluded.value, updated_at = NOW()"
+  },
   "62cbd062e28fb1286fe9ade2f9c891425cfbcfd242fb5a45bf2d2142ab211682": {
     "describe": {
       "columns": [],
@@ -4961,26 +4915,6 @@
       }
     },
     "query": "SELECT l1_batch_number FROM miniblocks WHERE number = $1"
-  },
-  "75be13f7db9c3b624e642e49356676a836eedd56dc7ac39663b4e798857c823c": {
-    "describe": {
-      "columns": [
-        {
-          "name": "address_and_key?",
-          "ordinal": 0,
-          "type_info": "ByteaArray"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": [
-          "ByteaArray"
-        ]
-      }
-    },
-    "query": "SELECT ( SELECT ARRAY[address, KEY] FROM storage_logs WHERE hashed_key = u.hashed_key ORDER BY miniblock_number, operation_number LIMIT 1 ) AS \"address_and_key?\" FROM UNNEST($1::bytea[]) AS u (hashed_key)"
   },
   "7784983f1b79b557de9733dc32d8410232750cdc7ddf1b8bff4b4fbe6389a3c3": {
     "describe": {
@@ -5883,38 +5817,6 @@
       }
     },
     "query": "DELETE FROM l1_batches WHERE number > $1"
-  },
-  "87fa6a8075bcc730cac3fa8351897e13c12f3d8e48502d7c6d7cc9f6607b8770": {
-    "describe": {
-      "columns": [
-        {
-          "name": "address",
-          "ordinal": 0,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "key",
-          "ordinal": 1,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "value",
-          "ordinal": 2,
-          "type_info": "Bytea"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      }
-    },
-    "query": "  SELECT address, KEY, value FROM storage_logs WHERE miniblock_number BETWEEN ( SELECT MIN(number) FROM miniblocks WHERE l1_batch_number = $1 ) AND ( SELECT MAX(number) FROM miniblocks WHERE l1_batch_number = $1 ) ORDER BY miniblock_number, operation_number"
   },
   "8a2d6866a1f1aa93988a57d20a1d72efb6410800ddaf4d4b02974963186eacfc": {
     "describe": {
@@ -7826,32 +7728,6 @@
     },
     "query": "   UPDATE witness_inputs SET status = 'in_progress', attempts = attempts + 1, updated_at = NOW(), processing_started_at = NOW() WHERE l1_batch_number = ( SELECT l1_batch_number FROM witness_inputs WHERE l1_batch_number <= $3 AND ( status = 'queued' OR ( status = 'in_progress' AND processing_started_at < NOW() - $1::INTERVAL ) OR ( status = 'failed' AND attempts < $2 ) ) AND protocol_version = ANY ($4) ORDER BY l1_batch_number ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING witness_inputs.*"
   },
-  "a10957405b3010b4c096e460bf46c9abd5257d85a28df4217b913451bce3f69a": {
-    "describe": {
-      "columns": [
-        {
-          "name": "address",
-          "ordinal": 0,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "key",
-          "ordinal": 1,
-          "type_info": "Bytea"
-        }
-      ],
-      "nullable": [
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      }
-    },
-    "query": "SELECT address, KEY FROM protective_reads WHERE l1_batch_number = $1"
-  },
   "a17304285397564b90397ad8e08cad2e6e12e29dbb64f6caa363025346e5c3bf": {
     "describe": {
       "columns": [
@@ -8509,6 +8385,26 @@
     },
     "query": "  SELECT l1_block_number FROM transactions WHERE priority_op_id IS NOT NULL ORDER BY priority_op_id DESC LIMIT 1"
   },
+  "b8505173c8020e9fe2cc8fd19bfd9f7ff6578ecc2fdfbc495005e1525222cd36": {
+    "describe": {
+      "columns": [
+        {
+          "name": "address_and_key?",
+          "ordinal": 0,
+          "type_info": "ByteaArray"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "ByteaArray"
+        ]
+      }
+    },
+    "query": "SELECT ( SELECT ARRAY[address, key] FROM storage_logs WHERE hashed_key = u.hashed_key ORDER BY miniblock_number, operation_number LIMIT 1 ) AS \"address_and_key?\" FROM UNNEST($1::bytea[]) AS u (hashed_key)"
+  },
   "b9142db95549afb742fcda5e2d030afd4b5d5ccbd983fb2ee4f619648015a1c2": {
     "describe": {
       "columns": [],
@@ -8867,6 +8763,98 @@
       }
     },
     "query": "SELECT hashed_key FROM initial_writes WHERE hashed_key = ANY ($1)"
+  },
+  "c4e4f1cf8f36d8c6949421229cd22146ae449cc86da6317cd2a25ed29f85f6a4": {
+    "describe": {
+      "columns": [
+        {
+          "name": "miniblock_number",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "log_index_in_miniblock",
+          "ordinal": 1,
+          "type_info": "Int4"
+        },
+        {
+          "name": "log_index_in_tx",
+          "ordinal": 2,
+          "type_info": "Int4"
+        },
+        {
+          "name": "tx_hash",
+          "ordinal": 3,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "block_hash",
+          "ordinal": 4,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l1_batch_number?",
+          "ordinal": 5,
+          "type_info": "Int8"
+        },
+        {
+          "name": "shard_id",
+          "ordinal": 6,
+          "type_info": "Int4"
+        },
+        {
+          "name": "is_service",
+          "ordinal": 7,
+          "type_info": "Bool"
+        },
+        {
+          "name": "tx_index_in_miniblock",
+          "ordinal": 8,
+          "type_info": "Int4"
+        },
+        {
+          "name": "tx_index_in_l1_batch",
+          "ordinal": 9,
+          "type_info": "Int4"
+        },
+        {
+          "name": "sender",
+          "ordinal": 10,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "key",
+          "ordinal": 11,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "value",
+          "ordinal": 12,
+          "type_info": "Bytea"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        null,
+        null,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Bytea"
+        ]
+      }
+    },
+    "query": "  SELECT miniblock_number, log_index_in_miniblock, log_index_in_tx, tx_hash, NULL::bytea AS \"block_hash\", NULL::BIGINT AS \"l1_batch_number?\", shard_id, is_service, tx_index_in_miniblock, tx_index_in_l1_batch, sender, key, value FROM l2_to_l1_logs WHERE tx_hash = $1 ORDER BY log_index_in_tx ASC"
   },
   "c4fa5af675b6164d16e50689bb3821bbc0c17711b01787ac5503f2d8da2645bc": {
     "describe": {
@@ -9263,6 +9251,32 @@
       }
     },
     "query": "   UPDATE leaf_aggregation_witness_jobs_fri SET status = 'queued', updated_at = NOW(), processing_started_at = NOW() WHERE ( status = 'in_progress' AND processing_started_at <= NOW() - $1::INTERVAL AND attempts < $2 ) OR ( status = 'failed' AND attempts < $2 ) RETURNING id, status, attempts"
+  },
+  "c881cd7018a9f714cdc3388936e363d49bd6ae52467d382d2f2250ab4f11acf9": {
+    "describe": {
+      "columns": [
+        {
+          "name": "address",
+          "ordinal": 0,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "key",
+          "ordinal": 1,
+          "type_info": "Bytea"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "SELECT address, key FROM protective_reads WHERE l1_batch_number = $1"
   },
   "c88a01b01245c70d604ca72d14e5193c99ab4a2cfd9f287405e0dbe62d39c510": {
     "describe": {
@@ -10932,20 +10946,6 @@
       }
     },
     "query": "UPDATE l1_batches SET commitment = $2, aux_data_hash = $3, updated_at = NOW() WHERE number = $1"
-  },
-  "e5366be089b3d2a931f0c8a139ee68fc6e95f90f169567e90e67227a1d48debc": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Bytea",
-          "Int8",
-          "Bytea"
-        ]
-      }
-    },
-    "query": "DELETE FROM tokens WHERE l2_address IN ( SELECT SUBSTRING(KEY, 12, 20) FROM storage_logs WHERE storage_logs.address = $1 AND miniblock_number > $2 AND NOT EXISTS ( SELECT 1 FROM storage_logs AS s WHERE s.hashed_key = storage_logs.hashed_key AND (s.miniblock_number, s.operation_number) >= (storage_logs.miniblock_number, storage_logs.operation_number) AND s.value = $3 ) )"
   },
   "e55ecb53aa7ba6301c8e90067d4bbf943850962aefa2437f1ed5ee3cc9230f80": {
     "describe": {
