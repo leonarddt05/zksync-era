@@ -193,7 +193,7 @@ impl BlocksWeb3Dal<'_, '_> {
         let rows = sqlx::query!(
             "  SELECT hash, \
                       number, \
-                      TIMESTAMP \
+                      timestamp \
                  FROM miniblocks \
                 WHERE number > $1 \
              ORDER BY number ASC",
@@ -270,7 +270,7 @@ impl BlocksWeb3Dal<'_, '_> {
             }
         };
         let timestamp = sqlx::query!(
-            "SELECT TIMESTAMP \
+            "SELECT timestamp \
                FROM miniblocks \
               WHERE number = $1",
             first_miniblock_of_batch.0 as i64

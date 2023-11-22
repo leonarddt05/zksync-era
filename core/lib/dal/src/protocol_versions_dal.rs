@@ -28,7 +28,7 @@ impl ProtocolVersionsDal<'_, '_> {
         sqlx::query!(
             "INSERT INTO protocol_versions ( \
                     id, \
-                    TIMESTAMP, \
+                    timestamp, \
                     recursion_scheduler_level_vk_hash, \
                     recursion_node_level_vk_hash, \
                     recursion_leaf_level_vk_hash, \
@@ -97,7 +97,7 @@ impl ProtocolVersionsDal<'_, '_> {
         sqlx::query!(
             "INSERT INTO prover_protocol_versions ( \
                     id, \
-                    TIMESTAMP, \
+                    timestamp, \
                     recursion_scheduler_level_vk_hash, \
                     recursion_node_level_vk_hash, \
                     recursion_leaf_level_vk_hash, \
@@ -143,7 +143,7 @@ impl ProtocolVersionsDal<'_, '_> {
                       default_account_code_hash, \
                       id \
                  FROM protocol_versions \
-                WHERE TIMESTAMP <= $1 \
+                WHERE timestamp <= $1 \
              ORDER BY id DESC \
                 LIMIT 1",
             current_timestamp as i64

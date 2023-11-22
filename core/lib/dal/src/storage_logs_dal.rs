@@ -132,7 +132,7 @@ impl StorageLogsDal<'_, '_> {
 
         let stage_start = Instant::now();
         sqlx::query!(
-            "DELETE FROM STORAGE \
+            "DELETE FROM storage \
               WHERE hashed_key = ANY ($1)",
             &keys_to_delete as &[&[u8]],
         )
@@ -147,9 +147,9 @@ impl StorageLogsDal<'_, '_> {
 
         let stage_start = Instant::now();
         sqlx::query!(
-            "UPDATE STORAGE \
-                SET VALUE = u.value \
-               FROM UNNEST($1::bytea[], $2::bytea[]) AS u (KEY, VALUE) \
+            "UPDATE storage \
+                SET value = u.value \
+               FROM UNNEST($1::bytea[], $2::bytea[]) AS u (key, value) \
               WHERE u.key = hashed_key",
             &keys_to_update as &[&[u8]],
             &values_to_update as &[&[u8]],
@@ -229,8 +229,8 @@ impl StorageLogsDal<'_, '_> {
     ) -> HashMap<StorageKey, H256> {
         let rows = sqlx::query!(
             "  SELECT address, \
-                      KEY, \
-                      VALUE \
+                      key, \
+                      value \
                  FROM storage_logs \
                 WHERE miniblock_number BETWEEN ( \
                          SELECT MIN(number) \
@@ -419,7 +419,7 @@ impl StorageLogsDal<'_, '_> {
         let rows = sqlx::query!(
             "SELECT u.hashed_key AS \"hashed_key!\", \
                     ( \
-                       SELECT VALUE \
+                       SELECT value \
                          FROM storage_logs \
                         WHERE hashed_key = u.hashed_key \
                           AND miniblock_number <= $2 \
@@ -450,7 +450,7 @@ impl StorageLogsDal<'_, '_> {
         let hashed_keys: Vec<_> = hashed_keys.iter().map(H256::as_bytes).collect();
         sqlx::query!(
             "SELECT ( \
-                       SELECT ARRAY[address, KEY] \
+                       SELECT ARRAY[address, key] \
                          FROM storage_logs \
                         WHERE hashed_key = u.hashed_key \
                      ORDER BY miniblock_number, \

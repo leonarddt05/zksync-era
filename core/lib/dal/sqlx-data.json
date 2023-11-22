@@ -1,31 +1,21 @@
 {
   "db": "PostgreSQL",
-  "00243b33d8e9d37f8b2e2507839b7d3d88254235e917e7a95cc0a0b4f5099ab8": {
+  "01154b534a13ee02724d008564704a358f1b9abdbb3a0e5f1ad4e1fcf71b165e": {
     "describe": {
-      "columns": [
-        {
-          "name": "hashed_key!",
-          "ordinal": 0,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "value?",
-          "ordinal": 1,
-          "type_info": "Bytea"
-        }
-      ],
-      "nullable": [
-        null,
-        null
-      ],
+      "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
-          "ByteaArray",
-          "Int8"
+          "Int8",
+          "Int2",
+          "Int4",
+          "Text",
+          "Int4",
+          "Int4"
         ]
       }
     },
-    "query": "SELECT u.hashed_key AS \"hashed_key!\", ( SELECT VALUE FROM storage_logs WHERE hashed_key = u.hashed_key AND miniblock_number <= $2 ORDER BY miniblock_number DESC, operation_number DESC LIMIT 1 ) AS \"value?\" FROM UNNEST($1::bytea[]) AS u (hashed_key)"
+    "query": "INSERT INTO node_aggregation_witness_jobs_fri ( l1_batch_number, circuit_id, depth, aggregations_url, number_of_dependent_jobs, protocol_version, status, created_at, updated_at ) VALUES ($1, $2, $3, $4, $5, $6, 'waiting_for_proofs', NOW(), NOW()) ON CONFLICT (l1_batch_number, circuit_id, depth) DO UPDATE SET updated_at = NOW()"
   },
   "016f9b33cc5a9a167a181642af0abedcd968f9ae1b49d6b52e7992bd2cdfc907": {
     "describe": {
@@ -39,35 +29,6 @@
       }
     },
     "query": "UPDATE proof_generation_details SET status = 'generated', proof_blob_url = $1, updated_at = NOW() WHERE l1_batch_number = $2"
-  },
-  "01ce8565a21bf21ff1ede49c32cd4d5603633a4a90377fcb3cf156eb0557ee2c": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Bytea",
-          "Bytea",
-          "Numeric",
-          "Numeric",
-          "Numeric",
-          "Jsonb",
-          "Int8",
-          "Numeric",
-          "Numeric",
-          "Bytea",
-          "Int4",
-          "Numeric",
-          "Bytea",
-          "Bytea",
-          "Int4",
-          "Numeric",
-          "Bytea",
-          "Timestamp"
-        ]
-      }
-    },
-    "query": "INSERT INTO transactions ( hash, is_priority, initiator_address, gas_limit, max_fee_per_gas, gas_per_pubdata_limit, DATA, priority_op_id, full_fee, layer_2_tip_fee, contract_address, l1_block_number, VALUE, paymaster, paymaster_input, tx_format, l1_tx_mint, l1_tx_refund_recipient, received_at, created_at, updated_at ) VALUES ( $1, TRUE, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW(), NOW() ) ON CONFLICT (hash) DO NOTHING"
   },
   "01ebdc5b524e85033fb06d9166475f365643f744492e59ff12f10b419dd6d485": {
     "describe": {
@@ -154,24 +115,6 @@
     },
     "query": "SELECT * FROM call_traces WHERE tx_hash = $1"
   },
-  "069b7a4f4f2a8d6f7b0d381a485b6b0c1d7fefa6f530c0c91ed1d020e4d37992": {
-    "describe": {
-      "columns": [
-        {
-          "name": "timestamp",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "  SELECT TIMESTAMP FROM l1_batches WHERE eth_commit_tx_id IS NULL AND number > 0 ORDER BY number LIMIT 1"
-  },
   "06d90ea65c1e06bd871f090a0fb0e8772ea5e923f1da5310bedd8dc90e0827f4": {
     "describe": {
       "columns": [
@@ -228,254 +171,28 @@
     },
     "query": "INSERT INTO eth_txs_history (eth_tx_id, base_fee_per_gas, priority_fee_per_gas, tx_hash, signed_raw_tx, created_at, updated_at, confirmed_at) VALUES ($1, 0, 0, $2, '\\x00', now(), now(), $3) RETURNING id"
   },
-  "07593f234cb76fd97e7f033a04024c45b8ab4208c542bdd0ddcd0c2ed79a5392": {
+  "0750ff252bebd043c34ecafaed1805caf7a5fea614a3067c1ed8d789907296a5": {
     "describe": {
       "columns": [
         {
-          "name": "number",
+          "name": "id",
           "ordinal": 0,
           "type_info": "Int8"
-        },
-        {
-          "name": "timestamp",
-          "ordinal": 1,
-          "type_info": "Int8"
-        },
-        {
-          "name": "is_finished",
-          "ordinal": 2,
-          "type_info": "Bool"
-        },
-        {
-          "name": "l1_tx_count",
-          "ordinal": 3,
-          "type_info": "Int4"
-        },
-        {
-          "name": "l2_tx_count",
-          "ordinal": 4,
-          "type_info": "Int4"
-        },
-        {
-          "name": "fee_account_address",
-          "ordinal": 5,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "bloom",
-          "ordinal": 6,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "priority_ops_onchain_data",
-          "ordinal": 7,
-          "type_info": "ByteaArray"
-        },
-        {
-          "name": "hash",
-          "ordinal": 8,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "parent_hash",
-          "ordinal": 9,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "commitment",
-          "ordinal": 10,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "compressed_write_logs",
-          "ordinal": 11,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "compressed_contracts",
-          "ordinal": 12,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "eth_prove_tx_id",
-          "ordinal": 13,
-          "type_info": "Int4"
-        },
-        {
-          "name": "eth_commit_tx_id",
-          "ordinal": 14,
-          "type_info": "Int4"
-        },
-        {
-          "name": "eth_execute_tx_id",
-          "ordinal": 15,
-          "type_info": "Int4"
-        },
-        {
-          "name": "merkle_root_hash",
-          "ordinal": 16,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l2_to_l1_logs",
-          "ordinal": 17,
-          "type_info": "ByteaArray"
-        },
-        {
-          "name": "l2_to_l1_messages",
-          "ordinal": 18,
-          "type_info": "ByteaArray"
-        },
-        {
-          "name": "used_contract_hashes",
-          "ordinal": 19,
-          "type_info": "Jsonb"
-        },
-        {
-          "name": "compressed_initial_writes",
-          "ordinal": 20,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "compressed_repeated_writes",
-          "ordinal": 21,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l2_l1_compressed_messages",
-          "ordinal": 22,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l2_l1_merkle_root",
-          "ordinal": 23,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l1_gas_price",
-          "ordinal": 24,
-          "type_info": "Int8"
-        },
-        {
-          "name": "l2_fair_gas_price",
-          "ordinal": 25,
-          "type_info": "Int8"
-        },
-        {
-          "name": "rollup_last_leaf_index",
-          "ordinal": 26,
-          "type_info": "Int8"
-        },
-        {
-          "name": "zkporter_is_available",
-          "ordinal": 27,
-          "type_info": "Bool"
-        },
-        {
-          "name": "bootloader_code_hash",
-          "ordinal": 28,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "default_aa_code_hash",
-          "ordinal": 29,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "base_fee_per_gas",
-          "ordinal": 30,
-          "type_info": "Numeric"
-        },
-        {
-          "name": "aux_data_hash",
-          "ordinal": 31,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "pass_through_data_hash",
-          "ordinal": 32,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "meta_parameters_hash",
-          "ordinal": 33,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "system_logs",
-          "ordinal": 34,
-          "type_info": "ByteaArray"
-        },
-        {
-          "name": "compressed_state_diffs",
-          "ordinal": 35,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "protocol_version",
-          "ordinal": 36,
-          "type_info": "Int4"
-        },
-        {
-          "name": "events_queue_commitment",
-          "ordinal": 37,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "bootloader_initial_content_commitment",
-          "ordinal": 38,
-          "type_info": "Bytea"
         }
       ],
       "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        false,
-        false,
-        false,
-        true,
-        true,
-        true,
-        true,
-        false,
-        false,
-        true,
-        true,
-        true,
-        true,
-        false,
-        true,
-        true,
-        true,
-        false,
-        true,
-        true,
-        true,
-        true
+        false
       ],
       "parameters": {
         "Left": [
           "Int8",
-          "Int8"
+          "Int2",
+          "Int2",
+          "Int4"
         ]
       }
     },
-    "query": "   SELECT number, TIMESTAMP, is_finished, l1_tx_count, l2_tx_count, fee_account_address, bloom, priority_ops_onchain_data, hash, parent_hash, commitment, compressed_write_logs, compressed_contracts, eth_prove_tx_id, eth_commit_tx_id, eth_execute_tx_id, merkle_root_hash, l2_to_l1_logs, l2_to_l1_messages, used_contract_hashes, compressed_initial_writes, compressed_repeated_writes, l2_l1_compressed_messages, l2_l1_merkle_root, l1_gas_price, l2_fair_gas_price, rollup_last_leaf_index, zkporter_is_available, bootloader_code_hash, default_aa_code_hash, base_fee_per_gas, aux_data_hash, pass_through_data_hash, meta_parameters_hash, system_logs, compressed_state_diffs, protocol_version, events_queue_commitment, bootloader_initial_content_commitment FROM ( SELECT l1_batches.*, ROW_NUMBER() OVER ( ORDER BY number ASC ) AS ROW_NUMBER FROM l1_batches WHERE eth_commit_tx_id IS NOT NULL AND l1_batches.skip_proof = TRUE AND l1_batches.number > $1 ORDER BY number LIMIT $2 ) inn LEFT JOIN commitments ON commitments.l1_batch_number = inn.number WHERE number - ROW_NUMBER = $1"
+    "query": "  SELECT id FROM prover_jobs_fri WHERE l1_batch_number = $1 AND circuit_id = $2 AND aggregation_round = $3 AND depth = $4 AND status = 'successful' ORDER BY sequence_number ASC;"
   },
   "0768bfaa11b2e3818d01c4f019f379af7d96bb1c7a7e683c0a0809d04aeaa1d6": {
     "describe": {
@@ -584,125 +301,99 @@
     },
     "query": "   UPDATE node_aggregation_witness_jobs SET status = 'in_progress', attempts = attempts + 1, updated_at = NOW(), processing_started_at = NOW() WHERE l1_batch_number = ( SELECT l1_batch_number FROM node_aggregation_witness_jobs WHERE l1_batch_number <= $3 AND ( status = 'queued' OR ( status = 'in_progress' AND processing_started_at < NOW() - $1::INTERVAL ) OR ( status = 'failed' AND attempts < $2 ) ) AND protocol_version = ANY ($4) ORDER BY l1_batch_number ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING node_aggregation_witness_jobs.*"
   },
-  "07abd0321ea0a8aabac49f966bc3ac090530efa19fcb0a6190575566d49953a6": {
+  "08c94ce4ce5fabf7634fd2cee649c7e3bbb3b1aa27fb085707ac915f5f9a1620": {
     "describe": {
       "columns": [
         {
-          "name": "region",
-          "ordinal": 0,
-          "type_info": "Text"
-        },
-        {
-          "name": "zone",
-          "ordinal": 1,
-          "type_info": "Text"
-        },
-        {
-          "name": "total_gpus",
-          "ordinal": 2,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        null
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "  SELECT region, ZONE, SUM(num_gpu) AS total_gpus FROM gpu_prover_queue GROUP BY region, ZONE"
-  },
-  "0b52bda1fccf5600bbe558b0a42d345db9fb729076ea151d277333e9ccdc5726": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "ByteaArray",
-          "ByteaArray"
-        ]
-      }
-    },
-    "query": "UPDATE STORAGE SET VALUE = u.value FROM UNNEST($1::bytea[], $2::bytea[]) AS u (KEY, VALUE) WHERE u.key = hashed_key"
-  },
-  "0cbbcd30fde109c4c44162f94b6ed9bab4e9db9948d03e584c2cab543449d298": {
-    "describe": {
-      "columns": [
-        {
-          "name": "status",
-          "ordinal": 0,
-          "type_info": "Text"
-        },
-        {
-          "name": "error",
-          "ordinal": 1,
-          "type_info": "Text"
-        },
-        {
-          "name": "compilation_errors",
-          "ordinal": 2,
-          "type_info": "Jsonb"
-        }
-      ],
-      "nullable": [
-        false,
-        true,
-        true
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      }
-    },
-    "query": "SELECT status, error, compilation_errors FROM contract_verification_requests WHERE id = $1"
-  },
-  "10a2ead7586b6cf630ccc4d80f068858c33b59dfb4b5087a56527b3fc243b33d": {
-    "describe": {
-      "columns": [
-        {
-          "name": "l1_batch_number",
+          "name": "miniblock_number",
           "ordinal": 0,
           "type_info": "Int8"
+        },
+        {
+          "name": "log_index_in_miniblock",
+          "ordinal": 1,
+          "type_info": "Int4"
+        },
+        {
+          "name": "log_index_in_tx",
+          "ordinal": 2,
+          "type_info": "Int4"
+        },
+        {
+          "name": "tx_hash",
+          "ordinal": 3,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "block_hash",
+          "ordinal": 4,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l1_batch_number?",
+          "ordinal": 5,
+          "type_info": "Int8"
+        },
+        {
+          "name": "shard_id",
+          "ordinal": 6,
+          "type_info": "Int4"
+        },
+        {
+          "name": "is_service",
+          "ordinal": 7,
+          "type_info": "Bool"
+        },
+        {
+          "name": "tx_index_in_miniblock",
+          "ordinal": 8,
+          "type_info": "Int4"
+        },
+        {
+          "name": "tx_index_in_l1_batch",
+          "ordinal": 9,
+          "type_info": "Int4"
+        },
+        {
+          "name": "sender",
+          "ordinal": 10,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "key",
+          "ordinal": 11,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "value",
+          "ordinal": 12,
+          "type_info": "Bytea"
         }
       ],
       "nullable": [
+        false,
+        false,
+        false,
+        false,
+        null,
+        null,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
         false
       ],
       "parameters": {
         "Left": [
-          "Int8"
+          "Bytea"
         ]
       }
     },
-    "query": "  SELECT l1_batch_number FROM witness_inputs WHERE LENGTH(merkle_tree_paths) <> 0 ORDER BY l1_batch_number DESC LIMIT $1"
+    "query": "  SELECT miniblock_number, log_index_in_miniblock, log_index_in_tx, tx_hash, NULL::bytea AS \"block_hash\", NULL::BIGINT AS \"l1_batch_number?\", shard_id, is_service, tx_index_in_miniblock, tx_index_in_l1_batch, sender, KEY, value FROM l2_to_l1_logs WHERE tx_hash = $1 ORDER BY log_index_in_tx ASC"
   },
-  "115df231d248dc166a3c61c8181abb9aa1084dc3e21cc9b7b29b1f6fe9465a95": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Int8"
-        ]
-      }
-    },
-    "query": "UPDATE prover_jobs_fri SET status = $1, updated_at = NOW() WHERE id = $2"
-  },
-  "12c2ec33f174901da007086e32edf19f1d6031807f6967bba9fba41803a31147": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "DELETE FROM eth_txs WHERE id >= ( SELECT MIN(id) FROM eth_txs WHERE has_failed = TRUE )"
-  },
-  "134c1ffa49103f5ceeba2613d256eddb41a4478f1bbc66353260514a7e938d36": {
+  "0ab3189994c9cd68b29e2a3491db73fc955f82fbd784a899cd880a29ffd822f9": {
     "describe": {
       "columns": [
         {
@@ -943,12 +634,151 @@
         true
       ],
       "parameters": {
+        "Left": []
+      }
+    },
+    "query": "   SELECT number, timestamp, is_finished, l1_tx_count, l2_tx_count, fee_account_address, bloom, priority_ops_onchain_data, hash, parent_hash, commitment, compressed_write_logs, compressed_contracts, eth_prove_tx_id, eth_commit_tx_id, eth_execute_tx_id, merkle_root_hash, l2_to_l1_logs, l2_to_l1_messages, used_contract_hashes, compressed_initial_writes, compressed_repeated_writes, l2_l1_compressed_messages, l2_l1_merkle_root, l1_gas_price, l2_fair_gas_price, rollup_last_leaf_index, zkporter_is_available, bootloader_code_hash, default_aa_code_hash, base_fee_per_gas, aux_data_hash, pass_through_data_hash, meta_parameters_hash, protocol_version, compressed_state_diffs, system_logs, events_queue_commitment, bootloader_initial_content_commitment FROM l1_batches LEFT JOIN commitments ON commitments.l1_batch_number = l1_batches.number WHERE number = 0 OR eth_commit_tx_id IS NOT NULL AND commitment IS NOT NULL ORDER BY number DESC LIMIT 1"
+  },
+  "0cbbcd30fde109c4c44162f94b6ed9bab4e9db9948d03e584c2cab543449d298": {
+    "describe": {
+      "columns": [
+        {
+          "name": "status",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "error",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "compilation_errors",
+          "ordinal": 2,
+          "type_info": "Jsonb"
+        }
+      ],
+      "nullable": [
+        false,
+        true,
+        true
+      ],
+      "parameters": {
         "Left": [
           "Int8"
         ]
       }
     },
-    "query": "   SELECT number, TIMESTAMP, is_finished, l1_tx_count, l2_tx_count, fee_account_address, bloom, priority_ops_onchain_data, hash, parent_hash, commitment, compressed_write_logs, compressed_contracts, eth_prove_tx_id, eth_commit_tx_id, eth_execute_tx_id, merkle_root_hash, l2_to_l1_logs, l2_to_l1_messages, used_contract_hashes, compressed_initial_writes, compressed_repeated_writes, l2_l1_compressed_messages, l2_l1_merkle_root, l1_gas_price, l2_fair_gas_price, rollup_last_leaf_index, zkporter_is_available, bootloader_code_hash, default_aa_code_hash, base_fee_per_gas, aux_data_hash, pass_through_data_hash, meta_parameters_hash, protocol_version, compressed_state_diffs, system_logs, events_queue_commitment, bootloader_initial_content_commitment FROM l1_batches LEFT JOIN commitments ON commitments.l1_batch_number = l1_batches.number WHERE eth_prove_tx_id IS NOT NULL AND eth_execute_tx_id IS NULL ORDER BY number LIMIT $1"
+    "query": "SELECT status, error, compilation_errors FROM contract_verification_requests WHERE id = $1"
+  },
+  "0f8a603899280c015b033c4160bc064865103e9d6d63a369f07a8e5d859a7b14": {
+    "describe": {
+      "columns": [
+        {
+          "name": "timestamp",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "SELECT timestamp FROM miniblocks WHERE number = $1"
+  },
+  "10a2ead7586b6cf630ccc4d80f068858c33b59dfb4b5087a56527b3fc243b33d": {
+    "describe": {
+      "columns": [
+        {
+          "name": "l1_batch_number",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "  SELECT l1_batch_number FROM witness_inputs WHERE LENGTH(merkle_tree_paths) <> 0 ORDER BY l1_batch_number DESC LIMIT $1"
+  },
+  "10b4dd111dae1831b4dca579c47cc7466951c4463736a7dc2424766da6aae9c9": {
+    "describe": {
+      "columns": [
+        {
+          "name": "region",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "zone",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "total_gpus",
+          "ordinal": 2,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        null
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "  SELECT region, zone, SUM(num_gpu) AS total_gpus FROM gpu_prover_queue GROUP BY region, zone"
+  },
+  "115df231d248dc166a3c61c8181abb9aa1084dc3e21cc9b7b29b1f6fe9465a95": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Int8"
+        ]
+      }
+    },
+    "query": "UPDATE prover_jobs_fri SET status = $1, updated_at = NOW() WHERE id = $2"
+  },
+  "12c2ec33f174901da007086e32edf19f1d6031807f6967bba9fba41803a31147": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "DELETE FROM eth_txs WHERE id >= ( SELECT MIN(id) FROM eth_txs WHERE has_failed = TRUE )"
+  },
+  "13c7999e8174cf17f1a93c1000470ecc211213d73b39330c88eed0b0daaa4806": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "ByteaArray",
+          "ByteaArray",
+          "ByteaArray",
+          "ByteaArray",
+          "ByteaArray"
+        ]
+      }
+    },
+    "query": "INSERT INTO storage (hashed_key, address, KEY, value, tx_hash, created_at, updated_at) SELECT u.hashed_key, u.address, u.key, u.value, u.tx_hash, NOW(), NOW() FROM UNNEST($1::bytea[], $2::bytea[], $3::bytea[], $4::bytea[], $5::bytea[]) AS u (hashed_key, address, KEY, value, tx_hash) ON CONFLICT (hashed_key) DO UPDATE SET tx_hash = excluded.tx_hash, value = excluded.value, updated_at = NOW()"
   },
   "1456ec5e11978bca0150f85216e76a6c4abbadf4b74ed13ca904d53406a055a5": {
     "describe": {
@@ -1801,33 +1631,6 @@
     },
     "query": "SELECT id FROM prover_fri_protocol_versions WHERE recursion_circuits_set_vks_hash = $1 AND recursion_leaf_level_vk_hash = $2 AND recursion_node_level_vk_hash = $3 AND recursion_scheduler_level_vk_hash = $4"
   },
-  "1d2a1d5bdaffe25c185bbebccce3dffb6ae9b8bff7c03239090381daa230aa02": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Bytea",
-          "Bytea",
-          "Numeric",
-          "Numeric",
-          "Numeric",
-          "Jsonb",
-          "Int4",
-          "Bytea",
-          "Int4",
-          "Numeric",
-          "Bytea",
-          "Bytea",
-          "Int4",
-          "Numeric",
-          "Bytea",
-          "Timestamp"
-        ]
-      }
-    },
-    "query": "INSERT INTO transactions ( hash, is_priority, initiator_address, gas_limit, max_fee_per_gas, gas_per_pubdata_limit, DATA, upgrade_id, contract_address, l1_block_number, VALUE, paymaster, paymaster_input, tx_format, l1_tx_mint, l1_tx_refund_recipient, received_at, created_at, updated_at ) VALUES ( $1, TRUE, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW() ) ON CONFLICT (hash) DO NOTHING"
-  },
   "1e9d05571d11d5be160f94c4d9dde57c0ca659496a0b493c6ed25e3e17377c82": {
     "describe": {
       "columns": [
@@ -2152,22 +1955,6 @@
       }
     },
     "query": "INSERT INTO commitments (l1_batch_number, events_queue_commitment, bootloader_initial_content_commitment) VALUES ($1, $2, $3) ON CONFLICT (l1_batch_number) DO NOTHING"
-  },
-  "230898070af157de2b1a468881172c1ce3c67d60c10b10de8cd06752980e6679": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Int4",
-          "Int4",
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "UPDATE gpu_prover_queue SET instance_status = 'available', updated_at = NOW(), queue_free_slots = $3 WHERE instance_host = $1::TEXT::inet AND instance_port = $2 AND instance_status = 'full' AND region = $4 AND ZONE = $5"
   },
   "23a9d5181e06c06dd23aed0739825ac8b4ac698c77ee876d6925eb5e362b7ac8": {
     "describe": {
@@ -2515,6 +2302,19 @@
     },
     "query": "SELECT COUNT(*) AS \"count!\" FROM contracts_verification_info WHERE address = $1"
   },
+  "2c831e9921b95a539082e4c885f17c72a65269431448b1ed1c44cc3e787a1b0d": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "ByteaArray",
+          "ByteaArray"
+        ]
+      }
+    },
+    "query": "UPDATE storage SET value = u.value FROM UNNEST($1::bytea[], $2::bytea[]) AS u (KEY, value) WHERE u.key = hashed_key"
+  },
   "2d509d4c163e880f643c9a3e0c085bb3f89446191891c0409a04512b0502bc9e": {
     "describe": {
       "columns": [],
@@ -2527,22 +2327,6 @@
       }
     },
     "query": "UPDATE scheduler_witness_jobs_fri SET status = 'failed', error = $1, updated_at = NOW() WHERE l1_batch_number = $2"
-  },
-  "2d62a7b9dc7908677766bbba192107e13cbab85e341e894e18b6fec9f0d42396": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Int8",
-          "Int2",
-          "Int4",
-          "Int4"
-        ]
-      }
-    },
-    "query": "UPDATE node_aggregation_witness_jobs_fri SET aggregations_url = $1, number_of_dependent_jobs = $5, updated_at = NOW() WHERE l1_batch_number = $2 AND circuit_id = $3 AND DEPTH = $4"
   },
   "2e0e0fdbc4240f884fb1cd4b325d84bfea3e0f8b1be5be16d4b0ef11f07c033c": {
     "describe": {
@@ -2697,6 +2481,30 @@
     },
     "query": "  SELECT COUNT(*) AS \"count!\", circuit_id AS \"circuit_id!\", aggregation_round AS \"aggregation_round!\", status AS \"status!\" FROM prover_jobs_fri WHERE status <> 'skipped' AND status <> 'successful' GROUP BY circuit_id, aggregation_round, status"
   },
+  "3215a14e194660c35f92b971a7264b593d8d64a39da7bb711951a15a6219470b": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Bytea",
+          "Int4",
+          "Int4",
+          "Numeric",
+          "Int8",
+          "Int8",
+          "Int8",
+          "Bytea",
+          "Bytea",
+          "Int4",
+          "Int8"
+        ]
+      }
+    },
+    "query": "INSERT INTO miniblocks ( number, timestamp, hash, l1_tx_count, l2_tx_count, base_fee_per_gas, l1_gas_price, l2_fair_gas_price, gas_per_pubdata_limit, bootloader_code_hash, default_aa_code_hash, protocol_version, virtual_blocks, created_at, updated_at ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())"
+  },
   "328851ad1d4a483d171bb26e969630a4c602f8bbd6b195826ea71cb1624cae0a": {
     "describe": {
       "columns": [
@@ -2753,6 +2561,26 @@
       }
     },
     "query": "SELECT MAX(number) as \"number\" FROM miniblocks"
+  },
+  "369240950aebd77afb5f81fb883686198f7b433108e22f7fbc225e54132a9116": {
+    "describe": {
+      "columns": [
+        {
+          "name": "number",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "  SELECT number FROM miniblocks WHERE timestamp > $1 ORDER BY number ASC LIMIT 1"
   },
   "376636f04a205c42d8252ccd882acbb9e64f1754618bb5683f844c40cc5aa029": {
     "describe": {
@@ -2838,43 +2666,169 @@
     },
     "query": "INSERT INTO call_traces (tx_hash, call_trace) SELECT u.tx_hash, u.call_trace FROM UNNEST($1::bytea[], $2::bytea[]) AS u (tx_hash, call_trace)"
   },
-  "3a13adbe4b8f4d7c0615f146ab68d8a8d57cff34c904b144c4352dd0b3fd9890": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Int8",
-          "Int2",
-          "Int4",
-          "Text",
-          "Int4",
-          "Int4"
-        ]
-      }
-    },
-    "query": "INSERT INTO node_aggregation_witness_jobs_fri ( l1_batch_number, circuit_id, DEPTH, aggregations_url, number_of_dependent_jobs, protocol_version, status, created_at, updated_at ) VALUES ($1, $2, $3, $4, $5, $6, 'waiting_for_proofs', NOW(), NOW()) ON CONFLICT (l1_batch_number, circuit_id, DEPTH) DO UPDATE SET updated_at = NOW()"
-  },
-  "3bb8fb42f8650c0c273b655784bb73e3f7c40d65ea74add01f2e2c93ad861cd1": {
+  "3a95f088b3ceb8e78286cb4a523d5f0ea2887aba7fc555a97d4329cd199ad96e": {
     "describe": {
       "columns": [
         {
-          "name": "value",
+          "name": "number",
           "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "l1_tx_count",
+          "ordinal": 1,
+          "type_info": "Int4"
+        },
+        {
+          "name": "l2_tx_count",
+          "ordinal": 2,
+          "type_info": "Int4"
+        },
+        {
+          "name": "timestamp",
+          "ordinal": 3,
+          "type_info": "Int8"
+        },
+        {
+          "name": "is_finished",
+          "ordinal": 4,
+          "type_info": "Bool"
+        },
+        {
+          "name": "fee_account_address",
+          "ordinal": 5,
           "type_info": "Bytea"
+        },
+        {
+          "name": "l2_to_l1_logs",
+          "ordinal": 6,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "l2_to_l1_messages",
+          "ordinal": 7,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "bloom",
+          "ordinal": 8,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "priority_ops_onchain_data",
+          "ordinal": 9,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "used_contract_hashes",
+          "ordinal": 10,
+          "type_info": "Jsonb"
+        },
+        {
+          "name": "base_fee_per_gas",
+          "ordinal": 11,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "l1_gas_price",
+          "ordinal": 12,
+          "type_info": "Int8"
+        },
+        {
+          "name": "l2_fair_gas_price",
+          "ordinal": 13,
+          "type_info": "Int8"
+        },
+        {
+          "name": "bootloader_code_hash",
+          "ordinal": 14,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "default_aa_code_hash",
+          "ordinal": 15,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "protocol_version",
+          "ordinal": 16,
+          "type_info": "Int4"
+        },
+        {
+          "name": "compressed_state_diffs",
+          "ordinal": 17,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "system_logs",
+          "ordinal": 18,
+          "type_info": "ByteaArray"
         }
       ],
       "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
         false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "  SELECT number, l1_tx_count, l2_tx_count, timestamp, is_finished, fee_account_address, l2_to_l1_logs, l2_to_l1_messages, bloom, priority_ops_onchain_data, used_contract_hashes, base_fee_per_gas, l1_gas_price, l2_fair_gas_price, bootloader_code_hash, default_aa_code_hash, protocol_version, compressed_state_diffs, system_logs FROM l1_batches ORDER BY number DESC LIMIT 1"
+  },
+  "3ba0893e0058ba2855ded03bd02e2c8823cea00820194c03405d669dd1ef7ff5": {
+    "describe": {
+      "columns": [
+        {
+          "name": "is_replaced!",
+          "ordinal": 0,
+          "type_info": "Bool"
+        }
+      ],
+      "nullable": [
+        null
       ],
       "parameters": {
         "Left": [
           "Bytea",
-          "Int8"
+          "Bytea",
+          "Int8",
+          "Bytea",
+          "Numeric",
+          "Numeric",
+          "Numeric",
+          "Numeric",
+          "Bytea",
+          "Jsonb",
+          "Int4",
+          "Bytea",
+          "Numeric",
+          "Bytea",
+          "Bytea",
+          "Int8",
+          "Int4",
+          "Int4",
+          "Timestamp"
         ]
       }
     },
-    "query": "  SELECT VALUE FROM storage_logs WHERE storage_logs.hashed_key = $1 AND storage_logs.miniblock_number <= $2 ORDER BY storage_logs.miniblock_number DESC, storage_logs.operation_number DESC LIMIT 1"
+    "query": "   INSERT INTO transactions ( hash, is_priority, initiator_address, nonce, signature, gas_limit, max_fee_per_gas, max_priority_fee_per_gas, gas_per_pubdata_limit, input, data, tx_format, contract_address, value, paymaster, paymaster_input, execution_info, received_at, created_at, updated_at ) VALUES ( $1, FALSE, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, JSONB_BUILD_OBJECT('gas_used', $16::BIGINT, 'storage_writes', $17::INT, 'contracts_used', $18::INT), $19, NOW(), NOW() ) ON CONFLICT (initiator_address, nonce) DO UPDATE SET hash = $1, signature = $4, gas_limit = $5, max_fee_per_gas = $6, max_priority_fee_per_gas = $7, gas_per_pubdata_limit = $8, input = $9, data = $10, tx_format = $11, contract_address = $12, value = $13, paymaster = $14, paymaster_input = $15, execution_info = JSONB_BUILD_OBJECT('gas_used', $16::BIGINT, 'storage_writes', $17::INT, 'contracts_used', $18::INT), in_mempool = FALSE, received_at = $19, created_at = NOW(), updated_at = NOW(), error = NULL WHERE transactions.is_priority = FALSE AND transactions.miniblock_number IS NULL RETURNING ( SELECT hash FROM transactions WHERE transactions.initiator_address = $2 AND transactions.nonce = $3 ) IS NOT NULL AS \"is_replaced!\""
   },
   "3be0d3fd7a1ff997edb1eaff3fac59324a5b33663e7862cfddd4a5db8015f13c": {
     "describe": {
@@ -2908,6 +2862,90 @@
       }
     },
     "query": "UPDATE eth_txs_history SET sent_at_block = $2, sent_at = NOW() WHERE id = $1 AND sent_at_block IS NULL"
+  },
+  "3c1855e060a3646641f4fe3db35226b9996e30a85745a1774a5d6237dfb9cc54": {
+    "describe": {
+      "columns": [
+        {
+          "name": "number",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "timestamp",
+          "ordinal": 1,
+          "type_info": "Int8"
+        },
+        {
+          "name": "hash",
+          "ordinal": 2,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l1_tx_count",
+          "ordinal": 3,
+          "type_info": "Int4"
+        },
+        {
+          "name": "l2_tx_count",
+          "ordinal": 4,
+          "type_info": "Int4"
+        },
+        {
+          "name": "base_fee_per_gas",
+          "ordinal": 5,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "l1_gas_price",
+          "ordinal": 6,
+          "type_info": "Int8"
+        },
+        {
+          "name": "l2_fair_gas_price",
+          "ordinal": 7,
+          "type_info": "Int8"
+        },
+        {
+          "name": "bootloader_code_hash",
+          "ordinal": 8,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "default_aa_code_hash",
+          "ordinal": 9,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "protocol_version",
+          "ordinal": 10,
+          "type_info": "Int4"
+        },
+        {
+          "name": "virtual_blocks",
+          "ordinal": 11,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "  SELECT number, timestamp, hash, l1_tx_count, l2_tx_count, base_fee_per_gas, l1_gas_price, l2_fair_gas_price, bootloader_code_hash, default_aa_code_hash, protocol_version, virtual_blocks FROM miniblocks ORDER BY number DESC LIMIT 1"
   },
   "3c40f9bf913f03abed3db4223cce458de0c98ec8f38ae328062c0f93bb541e35": {
     "describe": {
@@ -2945,6 +2983,255 @@
       }
     },
     "query": "DELETE FROM compiler_versions WHERE compiler = $1"
+  },
+  "3ffeabb0494f9179bdfda7b9b135564a5ed337157d8460503317ee2f5fd55732": {
+    "describe": {
+      "columns": [
+        {
+          "name": "number",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "timestamp",
+          "ordinal": 1,
+          "type_info": "Int8"
+        },
+        {
+          "name": "is_finished",
+          "ordinal": 2,
+          "type_info": "Bool"
+        },
+        {
+          "name": "l1_tx_count",
+          "ordinal": 3,
+          "type_info": "Int4"
+        },
+        {
+          "name": "l2_tx_count",
+          "ordinal": 4,
+          "type_info": "Int4"
+        },
+        {
+          "name": "fee_account_address",
+          "ordinal": 5,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "bloom",
+          "ordinal": 6,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "priority_ops_onchain_data",
+          "ordinal": 7,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "hash",
+          "ordinal": 8,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "parent_hash",
+          "ordinal": 9,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "commitment",
+          "ordinal": 10,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "compressed_write_logs",
+          "ordinal": 11,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "compressed_contracts",
+          "ordinal": 12,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "eth_prove_tx_id",
+          "ordinal": 13,
+          "type_info": "Int4"
+        },
+        {
+          "name": "eth_commit_tx_id",
+          "ordinal": 14,
+          "type_info": "Int4"
+        },
+        {
+          "name": "eth_execute_tx_id",
+          "ordinal": 15,
+          "type_info": "Int4"
+        },
+        {
+          "name": "merkle_root_hash",
+          "ordinal": 16,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l2_to_l1_logs",
+          "ordinal": 17,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "l2_to_l1_messages",
+          "ordinal": 18,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "used_contract_hashes",
+          "ordinal": 19,
+          "type_info": "Jsonb"
+        },
+        {
+          "name": "compressed_initial_writes",
+          "ordinal": 20,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "compressed_repeated_writes",
+          "ordinal": 21,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l2_l1_compressed_messages",
+          "ordinal": 22,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l2_l1_merkle_root",
+          "ordinal": 23,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l1_gas_price",
+          "ordinal": 24,
+          "type_info": "Int8"
+        },
+        {
+          "name": "l2_fair_gas_price",
+          "ordinal": 25,
+          "type_info": "Int8"
+        },
+        {
+          "name": "rollup_last_leaf_index",
+          "ordinal": 26,
+          "type_info": "Int8"
+        },
+        {
+          "name": "zkporter_is_available",
+          "ordinal": 27,
+          "type_info": "Bool"
+        },
+        {
+          "name": "bootloader_code_hash",
+          "ordinal": 28,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "default_aa_code_hash",
+          "ordinal": 29,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "base_fee_per_gas",
+          "ordinal": 30,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "aux_data_hash",
+          "ordinal": 31,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "pass_through_data_hash",
+          "ordinal": 32,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "meta_parameters_hash",
+          "ordinal": 33,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "system_logs",
+          "ordinal": 34,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "compressed_state_diffs",
+          "ordinal": 35,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "protocol_version",
+          "ordinal": 36,
+          "type_info": "Int4"
+        },
+        {
+          "name": "events_queue_commitment",
+          "ordinal": 37,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "bootloader_initial_content_commitment",
+          "ordinal": 38,
+          "type_info": "Bytea"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        false,
+        true,
+        true,
+        true,
+        false,
+        true,
+        true,
+        true,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      }
+    },
+    "query": "   SELECT number, timestamp, is_finished, l1_tx_count, l2_tx_count, fee_account_address, bloom, priority_ops_onchain_data, hash, parent_hash, commitment, compressed_write_logs, compressed_contracts, eth_prove_tx_id, eth_commit_tx_id, eth_execute_tx_id, merkle_root_hash, l2_to_l1_logs, l2_to_l1_messages, used_contract_hashes, compressed_initial_writes, compressed_repeated_writes, l2_l1_compressed_messages, l2_l1_merkle_root, l1_gas_price, l2_fair_gas_price, rollup_last_leaf_index, zkporter_is_available, bootloader_code_hash, default_aa_code_hash, base_fee_per_gas, aux_data_hash, pass_through_data_hash, meta_parameters_hash, system_logs, compressed_state_diffs, protocol_version, events_queue_commitment, bootloader_initial_content_commitment FROM ( SELECT l1_batches.*, ROW_NUMBER() OVER ( ORDER BY number ASC ) AS ROW_NUMBER FROM l1_batches WHERE eth_commit_tx_id IS NOT NULL AND l1_batches.skip_proof = TRUE AND l1_batches.number > $1 ORDER BY number LIMIT $2 ) inn LEFT JOIN commitments ON commitments.l1_batch_number = inn.number WHERE number - ROW_NUMBER = $1"
   },
   "43b5082ff7673ee3a8e8f3fafa64667fac4f7f5c8bd26a21ead6b4ba0f8fd17b": {
     "describe": {
@@ -3014,6 +3301,38 @@
       }
     },
     "query": "VACUUM storage_logs"
+  },
+  "469a6913d26d270cfbc3341d4a3c38613f3ed0f7dd453b94ac7aa7c52fc380e9": {
+    "describe": {
+      "columns": [
+        {
+          "name": "hash",
+          "ordinal": 0,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "number",
+          "ordinal": 1,
+          "type_info": "Int8"
+        },
+        {
+          "name": "timestamp",
+          "ordinal": 2,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "  SELECT hash, number, timestamp FROM miniblocks WHERE number > $1 ORDER BY number ASC"
   },
   "481d4f60a8af6297da0157021b0724d587dd59f0f766b846c1d5ab1fc9a0e2ed": {
     "describe": {
@@ -3324,127 +3643,6 @@
     },
     "query": "   UPDATE scheduler_witness_jobs_fri SET status = 'in_progress', attempts = attempts + 1, updated_at = NOW(), processing_started_at = NOW(), picked_by = $2 WHERE l1_batch_number = ( SELECT l1_batch_number FROM scheduler_witness_jobs_fri WHERE status = 'queued' AND protocol_version = ANY ($1) ORDER BY l1_batch_number ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING scheduler_witness_jobs_fri.*"
   },
-  "4a0a92a4887f0df52895eace3a3a3fbe21141f09d5c78ed3e989da6251ea2009": {
-    "describe": {
-      "columns": [
-        {
-          "name": "number",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      }
-    },
-    "query": "  SELECT number FROM miniblocks WHERE TIMESTAMP > $1 ORDER BY number ASC LIMIT 1"
-  },
-  "4aa0b54ace352832f825809e4ad21eb895de101448419cf93117f9e868f64920": {
-    "describe": {
-      "columns": [
-        {
-          "name": "number",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "timestamp",
-          "ordinal": 1,
-          "type_info": "Int8"
-        },
-        {
-          "name": "hash",
-          "ordinal": 2,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l1_tx_count",
-          "ordinal": 3,
-          "type_info": "Int4"
-        },
-        {
-          "name": "l2_tx_count",
-          "ordinal": 4,
-          "type_info": "Int4"
-        },
-        {
-          "name": "base_fee_per_gas",
-          "ordinal": 5,
-          "type_info": "Numeric"
-        },
-        {
-          "name": "l1_gas_price",
-          "ordinal": 6,
-          "type_info": "Int8"
-        },
-        {
-          "name": "l2_fair_gas_price",
-          "ordinal": 7,
-          "type_info": "Int8"
-        },
-        {
-          "name": "bootloader_code_hash",
-          "ordinal": 8,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "default_aa_code_hash",
-          "ordinal": 9,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "protocol_version",
-          "ordinal": 10,
-          "type_info": "Int4"
-        },
-        {
-          "name": "virtual_blocks",
-          "ordinal": 11,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true,
-        true,
-        true,
-        false
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "  SELECT number, TIMESTAMP, hash, l1_tx_count, l2_tx_count, base_fee_per_gas, l1_gas_price, l2_fair_gas_price, bootloader_code_hash, default_aa_code_hash, protocol_version, virtual_blocks FROM miniblocks ORDER BY number DESC LIMIT 1"
-  },
-  "4ab755c9163ab560869c1707472479be29d3d8dc694c37cac7ff2ade03d1ea85": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Text",
-          "Int4",
-          "Int4",
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "UPDATE gpu_prover_queue SET instance_status = $1, updated_at = NOW(), queue_free_slots = $4 WHERE instance_host = $2::TEXT::inet AND instance_port = $3 AND region = $5 AND ZONE = $6"
-  },
   "4ac212a08324b9d4c3febc585109f19105b4d20aa3e290352e3c63d7ec58c5b2": {
     "describe": {
       "columns": [
@@ -3556,6 +3754,38 @@
     },
     "query": "UPDATE eth_txs SET has_failed = TRUE WHERE id = $1"
   },
+  "518bcefe160e4ed4943babb45dd6d9aa7d312eb60f91a08b4e3640a639e2db73": {
+    "describe": {
+      "columns": [
+        {
+          "name": "bootloader_code_hash",
+          "ordinal": 0,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "default_account_code_hash",
+          "ordinal": 1,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "id",
+          "ordinal": 2,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "  SELECT bootloader_code_hash, default_account_code_hash, id FROM protocol_versions WHERE timestamp <= $1 ORDER BY id DESC LIMIT 1"
+  },
   "5256db231288a4a7c216f0f36ad76fb461af29ec957236ec478eee1ed7161068": {
     "describe": {
       "columns": [],
@@ -3624,166 +3854,7 @@
     },
     "query": "   SELECT factory_deps.bytecode, transactions.data AS \"data?\", transactions.contract_address AS \"contract_address?\" FROM ( SELECT * FROM storage_logs WHERE storage_logs.hashed_key = $1 ORDER BY miniblock_number DESC, operation_number DESC LIMIT 1 ) storage_logs JOIN factory_deps ON factory_deps.bytecode_hash = storage_logs.value LEFT JOIN transactions ON transactions.hash = storage_logs.tx_hash WHERE storage_logs.value != $2"
   },
-  "5324e1006d12216f5918b2e344aada65edb95b08186ee852da3b5392491ec292": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Int4",
-          "Int8",
-          "Bytea",
-          "Bytea",
-          "Bytea",
-          "Bytea",
-          "Bytea",
-          "Bytea",
-          "Bytea",
-          "Bytea"
-        ]
-      }
-    },
-    "query": "INSERT INTO protocol_versions ( id, TIMESTAMP, recursion_scheduler_level_vk_hash, recursion_node_level_vk_hash, recursion_leaf_level_vk_hash, recursion_circuits_set_vks_hash, bootloader_code_hash, default_account_code_hash, verifier_address, upgrade_tx_hash, created_at ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())"
-  },
-  "53476fc4081fb1e801cc8486b9c0b42415461f79f9176067a322c241953ef17c": {
-    "describe": {
-      "columns": [
-        {
-          "name": "miniblock_number",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "log_index_in_miniblock",
-          "ordinal": 1,
-          "type_info": "Int4"
-        },
-        {
-          "name": "log_index_in_tx",
-          "ordinal": 2,
-          "type_info": "Int4"
-        },
-        {
-          "name": "tx_hash",
-          "ordinal": 3,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "block_hash",
-          "ordinal": 4,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l1_batch_number?",
-          "ordinal": 5,
-          "type_info": "Int8"
-        },
-        {
-          "name": "shard_id",
-          "ordinal": 6,
-          "type_info": "Int4"
-        },
-        {
-          "name": "is_service",
-          "ordinal": 7,
-          "type_info": "Bool"
-        },
-        {
-          "name": "tx_index_in_miniblock",
-          "ordinal": 8,
-          "type_info": "Int4"
-        },
-        {
-          "name": "tx_index_in_l1_batch",
-          "ordinal": 9,
-          "type_info": "Int4"
-        },
-        {
-          "name": "sender",
-          "ordinal": 10,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "key",
-          "ordinal": 11,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "value",
-          "ordinal": 12,
-          "type_info": "Bytea"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        null,
-        null,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Bytea"
-        ]
-      }
-    },
-    "query": "  SELECT miniblock_number, log_index_in_miniblock, log_index_in_tx, tx_hash, NULL::bytea AS \"block_hash\", NULL::BIGINT AS \"l1_batch_number?\", shard_id, is_service, tx_index_in_miniblock, tx_index_in_l1_batch, sender, KEY, VALUE FROM l2_to_l1_logs WHERE tx_hash = $1 ORDER BY log_index_in_tx ASC"
-  },
-  "5503575d9377785894de6cf6139a8d4768c6a803a1a90889e5a1b8254c315231": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Int4"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "INSERT INTO eth_txs (raw_tx, nonce, tx_type, contract_address, predicted_gas_cost, created_at, updated_at) VALUES ('\\x00', 0, $1, '', 0, now(), now()) RETURNING id"
-  },
-  "5563da0d52ca7310ae7bc957caa5d8b3dcbd9386bb2a0be68dcd21ebb044cdbd": {
-    "describe": {
-      "columns": [
-        {
-          "name": "bytecode_hash",
-          "ordinal": 0,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "bytecode",
-          "ordinal": 1,
-          "type_info": "Bytea"
-        }
-      ],
-      "nullable": [
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      }
-    },
-    "query": "SELECT bytecode_hash, bytecode FROM factory_deps INNER JOIN miniblocks ON miniblocks.number = factory_deps.miniblock_number WHERE miniblocks.l1_batch_number = $1"
-  },
-  "5600dc6543ec30d369f620a4a0476038f56f52a3b60388b68b8562bac94c90d9": {
+  "53a8e3ffe0828e9263f7fa57432548ded16314ff86de58a7e91101a9fc867560": {
     "describe": {
       "columns": [
         {
@@ -3962,14 +4033,14 @@
           "type_info": "Int4"
         },
         {
-          "name": "compressed_state_diffs",
+          "name": "system_logs",
           "ordinal": 35,
-          "type_info": "Bytea"
+          "type_info": "ByteaArray"
         },
         {
-          "name": "system_logs",
+          "name": "compressed_state_diffs",
           "ordinal": 36,
-          "type_info": "ByteaArray"
+          "type_info": "Bytea"
         },
         {
           "name": "events_queue_commitment",
@@ -4018,8 +4089,8 @@
         true,
         true,
         true,
-        true,
         false,
+        true,
         true,
         true
       ],
@@ -4029,29 +4100,43 @@
         ]
       }
     },
-    "query": "   SELECT number, TIMESTAMP, is_finished, l1_tx_count, l2_tx_count, fee_account_address, bloom, priority_ops_onchain_data, hash, parent_hash, commitment, compressed_write_logs, compressed_contracts, eth_prove_tx_id, eth_commit_tx_id, eth_execute_tx_id, merkle_root_hash, l2_to_l1_logs, l2_to_l1_messages, used_contract_hashes, compressed_initial_writes, compressed_repeated_writes, l2_l1_compressed_messages, l2_l1_merkle_root, l1_gas_price, l2_fair_gas_price, rollup_last_leaf_index, zkporter_is_available, bootloader_code_hash, default_aa_code_hash, base_fee_per_gas, aux_data_hash, pass_through_data_hash, meta_parameters_hash, protocol_version, compressed_state_diffs, system_logs, events_queue_commitment, bootloader_initial_content_commitment FROM l1_batches LEFT JOIN commitments ON commitments.l1_batch_number = l1_batches.number WHERE eth_commit_tx_id IS NOT NULL AND eth_prove_tx_id IS NULL ORDER BY number LIMIT $1"
+    "query": "   SELECT number, timestamp, is_finished, l1_tx_count, l2_tx_count, fee_account_address, bloom, priority_ops_onchain_data, hash, parent_hash, commitment, compressed_write_logs, compressed_contracts, eth_prove_tx_id, eth_commit_tx_id, eth_execute_tx_id, merkle_root_hash, l2_to_l1_logs, l2_to_l1_messages, used_contract_hashes, compressed_initial_writes, compressed_repeated_writes, l2_l1_compressed_messages, l2_l1_merkle_root, l1_gas_price, l2_fair_gas_price, rollup_last_leaf_index, zkporter_is_available, bootloader_code_hash, default_aa_code_hash, base_fee_per_gas, aux_data_hash, pass_through_data_hash, meta_parameters_hash, protocol_version, system_logs, compressed_state_diffs, events_queue_commitment, bootloader_initial_content_commitment FROM l1_batches LEFT JOIN commitments ON commitments.l1_batch_number = l1_batches.number WHERE number = $1"
   },
-  "560d7fb7b0b5cacb8b3709e228caa6a3a5694e1d7d203415b3ee4e8f29dc86fc": {
+  "5503575d9377785894de6cf6139a8d4768c6a803a1a90889e5a1b8254c315231": {
     "describe": {
       "columns": [
         {
-          "name": "hash",
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO eth_txs (raw_tx, nonce, tx_type, contract_address, predicted_gas_cost, created_at, updated_at) VALUES ('\\x00', 0, $1, '', 0, now(), now()) RETURNING id"
+  },
+  "5563da0d52ca7310ae7bc957caa5d8b3dcbd9386bb2a0be68dcd21ebb044cdbd": {
+    "describe": {
+      "columns": [
+        {
+          "name": "bytecode_hash",
           "ordinal": 0,
           "type_info": "Bytea"
         },
         {
-          "name": "number",
+          "name": "bytecode",
           "ordinal": 1,
-          "type_info": "Int8"
-        },
-        {
-          "name": "timestamp",
-          "ordinal": 2,
-          "type_info": "Int8"
+          "type_info": "Bytea"
         }
       ],
       "nullable": [
-        false,
         false,
         false
       ],
@@ -4061,7 +4146,7 @@
         ]
       }
     },
-    "query": "  SELECT hash, number, TIMESTAMP FROM miniblocks WHERE number > $1 ORDER BY number ASC"
+    "query": "SELECT bytecode_hash, bytecode FROM factory_deps INNER JOIN miniblocks ON miniblocks.number = factory_deps.miniblock_number WHERE miniblocks.l1_batch_number = $1"
   },
   "565a302151a5a55aa717048e3e21b5d7379ab47c2b80229024f0cb2699136b11": {
     "describe": {
@@ -4086,6 +4171,27 @@
       }
     },
     "query": "DELETE FROM call_traces WHERE tx_hash = ANY ($1)"
+  },
+  "56be2f79bf0626b544e89314d91daea55a6608330b63ebbae81a2b36c40950fa": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int8",
+          "Bytea",
+          "Bytea",
+          "Bytea",
+          "Bytea",
+          "Bytea",
+          "Bytea",
+          "Bytea",
+          "Bytea"
+        ]
+      }
+    },
+    "query": "INSERT INTO protocol_versions ( id, timestamp, recursion_scheduler_level_vk_hash, recursion_node_level_vk_hash, recursion_leaf_level_vk_hash, recursion_circuits_set_vks_hash, bootloader_code_hash, default_account_code_hash, verifier_address, upgrade_tx_hash, created_at ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())"
   },
   "56d6c24d31b9516bce7a1e6aee00ab885d6df0be137de5a34372d9751e65c9fa": {
     "describe": {
@@ -4152,6 +4258,39 @@
     },
     "query": "   UPDATE proof_generation_details SET status = 'picked_by_prover', updated_at = NOW(), prover_taken_at = NOW() WHERE l1_batch_number = ( SELECT l1_batch_number FROM proof_generation_details WHERE status = 'ready_to_be_proven' OR ( status = 'picked_by_prover' AND prover_taken_at < NOW() - $1::INTERVAL ) ORDER BY l1_batch_number ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING proof_generation_details.l1_batch_number"
   },
+  "58ba72166a23b4059ec9aa4bfb97fd661866b82ec5b9da30dd3d4aa13b3cfa00": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Int4",
+          "Text"
+        ]
+      }
+    },
+    "query": "UPDATE gpu_prover_queue_fri SET instance_status = $1, updated_at = NOW() WHERE instance_host = $2::TEXT::inet AND instance_port = $3 AND zone = $4"
+  },
+  "58c894d1876640bec9b86d47f3437cf91a86738e3490603c5f2a253008cbe5b3": {
+    "describe": {
+      "columns": [
+        {
+          "name": "timestamp",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "  SELECT timestamp FROM l1_batches WHERE eth_prove_tx_id IS NULL AND number > 0 ORDER BY number LIMIT 1"
+  },
   "596ede80b21f08fc4dcf3e1fcc40810fe4c8f5123bcc19faebd15bfac86029d7": {
     "describe": {
       "columns": [],
@@ -4203,6 +4342,26 @@
     },
     "query": "SELECT fee_account_address FROM l1_batches WHERE number = $1"
   },
+  "5ac872e2c5a00b376cc053324b3776ef6a0bb7f6850e5a24a133dfee052c49e1": {
+    "describe": {
+      "columns": [
+        {
+          "name": "value",
+          "ordinal": 0,
+          "type_info": "Bytea"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Bytea"
+        ]
+      }
+    },
+    "query": "SELECT value FROM storage WHERE hashed_key = $1"
+  },
   "5aee63136c311fa2b4e4edd7f8c31f9d1fb1cdfe7e178cf0196716f36a39ef1b": {
     "describe": {
       "columns": [],
@@ -4215,6 +4374,27 @@
       }
     },
     "query": "UPDATE proof_compression_jobs_fri SET status = $1, updated_at = NOW() WHERE l1_batch_number = $2"
+  },
+  "5b790f10375960cf6c860df0601f2caa33f96470b97583cf8fa59bea1841f9c3": {
+    "describe": {
+      "columns": [
+        {
+          "name": "value",
+          "ordinal": 0,
+          "type_info": "Bytea"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Bytea",
+          "Int8"
+        ]
+      }
+    },
+    "query": "  SELECT value FROM storage_logs WHERE storage_logs.hashed_key = $1 AND storage_logs.miniblock_number <= $2 ORDER BY storage_logs.miniblock_number DESC, storage_logs.operation_number DESC LIMIT 1"
   },
   "5bc8cdc7ed710bb2f9b0035654fd7e9dcc01731ca581c6aa75d55184817bc100": {
     "describe": {
@@ -4253,6 +4433,86 @@
       }
     },
     "query": "SELECT attempts FROM node_aggregation_witness_jobs_fri WHERE id = $1"
+  },
+  "5e693dc4a9f8ef697ea7da762d637266b1064a40167eaa87f9c03dd788640928": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Bytea",
+          "Bytea",
+          "Numeric",
+          "Numeric",
+          "Numeric",
+          "Jsonb",
+          "Int4",
+          "Bytea",
+          "Int4",
+          "Numeric",
+          "Bytea",
+          "Bytea",
+          "Int4",
+          "Numeric",
+          "Bytea",
+          "Timestamp"
+        ]
+      }
+    },
+    "query": "INSERT INTO transactions ( hash, is_priority, initiator_address, gas_limit, max_fee_per_gas, gas_per_pubdata_limit, data, upgrade_id, contract_address, l1_block_number, value, paymaster, paymaster_input, tx_format, l1_tx_mint, l1_tx_refund_recipient, received_at, created_at, updated_at ) VALUES ( $1, TRUE, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW() ) ON CONFLICT (hash) DO NOTHING"
+  },
+  "5e9b50f4c175c4d7f435e8cd954cd73d15f4541dfdf5f2f91be58e676e5dc0b9": {
+    "describe": {
+      "columns": [
+        {
+          "name": "hashed_key!",
+          "ordinal": 0,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "value?",
+          "ordinal": 1,
+          "type_info": "Bytea"
+        }
+      ],
+      "nullable": [
+        null,
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "ByteaArray",
+          "Int8"
+        ]
+      }
+    },
+    "query": "SELECT u.hashed_key AS \"hashed_key!\", ( SELECT value FROM storage_logs WHERE hashed_key = u.hashed_key AND miniblock_number <= $2 ORDER BY miniblock_number DESC, operation_number DESC LIMIT 1 ) AS \"value?\" FROM UNNEST($1::bytea[]) AS u (hashed_key)"
+  },
+  "5f08f680350b83e2766d5968b3c2efd93ec5afcf31f6c820d29511a16940221a": {
+    "describe": {
+      "columns": [
+        {
+          "name": "hashed_key",
+          "ordinal": 0,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "value!",
+          "ordinal": 1,
+          "type_info": "Bytea"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "ByteaArray"
+        ]
+      }
+    },
+    "query": "SELECT hashed_key, value AS \"value!\" FROM storage WHERE hashed_key = ANY ($1)"
   },
   "601487490349c5eee83d6de19137b1a1079235e46c4a3f07e1eaa9db7760f586": {
     "describe": {
@@ -4445,252 +4705,6 @@
     },
     "query": "SELECT l2_to_l1_logs FROM l1_batches WHERE number = $1"
   },
-  "688e253b6e67aedd800c4bdb791fb3381675af472d80abb66192fb3484c0a763": {
-    "describe": {
-      "columns": [
-        {
-          "name": "number",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "timestamp",
-          "ordinal": 1,
-          "type_info": "Int8"
-        },
-        {
-          "name": "is_finished",
-          "ordinal": 2,
-          "type_info": "Bool"
-        },
-        {
-          "name": "l1_tx_count",
-          "ordinal": 3,
-          "type_info": "Int4"
-        },
-        {
-          "name": "l2_tx_count",
-          "ordinal": 4,
-          "type_info": "Int4"
-        },
-        {
-          "name": "fee_account_address",
-          "ordinal": 5,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "bloom",
-          "ordinal": 6,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "priority_ops_onchain_data",
-          "ordinal": 7,
-          "type_info": "ByteaArray"
-        },
-        {
-          "name": "hash",
-          "ordinal": 8,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "parent_hash",
-          "ordinal": 9,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "commitment",
-          "ordinal": 10,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "compressed_write_logs",
-          "ordinal": 11,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "compressed_contracts",
-          "ordinal": 12,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "eth_prove_tx_id",
-          "ordinal": 13,
-          "type_info": "Int4"
-        },
-        {
-          "name": "eth_commit_tx_id",
-          "ordinal": 14,
-          "type_info": "Int4"
-        },
-        {
-          "name": "eth_execute_tx_id",
-          "ordinal": 15,
-          "type_info": "Int4"
-        },
-        {
-          "name": "merkle_root_hash",
-          "ordinal": 16,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l2_to_l1_logs",
-          "ordinal": 17,
-          "type_info": "ByteaArray"
-        },
-        {
-          "name": "l2_to_l1_messages",
-          "ordinal": 18,
-          "type_info": "ByteaArray"
-        },
-        {
-          "name": "used_contract_hashes",
-          "ordinal": 19,
-          "type_info": "Jsonb"
-        },
-        {
-          "name": "compressed_initial_writes",
-          "ordinal": 20,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "compressed_repeated_writes",
-          "ordinal": 21,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l2_l1_compressed_messages",
-          "ordinal": 22,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l2_l1_merkle_root",
-          "ordinal": 23,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l1_gas_price",
-          "ordinal": 24,
-          "type_info": "Int8"
-        },
-        {
-          "name": "l2_fair_gas_price",
-          "ordinal": 25,
-          "type_info": "Int8"
-        },
-        {
-          "name": "rollup_last_leaf_index",
-          "ordinal": 26,
-          "type_info": "Int8"
-        },
-        {
-          "name": "zkporter_is_available",
-          "ordinal": 27,
-          "type_info": "Bool"
-        },
-        {
-          "name": "bootloader_code_hash",
-          "ordinal": 28,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "default_aa_code_hash",
-          "ordinal": 29,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "base_fee_per_gas",
-          "ordinal": 30,
-          "type_info": "Numeric"
-        },
-        {
-          "name": "aux_data_hash",
-          "ordinal": 31,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "pass_through_data_hash",
-          "ordinal": 32,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "meta_parameters_hash",
-          "ordinal": 33,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "protocol_version",
-          "ordinal": 34,
-          "type_info": "Int4"
-        },
-        {
-          "name": "compressed_state_diffs",
-          "ordinal": 35,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "system_logs",
-          "ordinal": 36,
-          "type_info": "ByteaArray"
-        },
-        {
-          "name": "events_queue_commitment",
-          "ordinal": 37,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "bootloader_initial_content_commitment",
-          "ordinal": 38,
-          "type_info": "Bytea"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        false,
-        false,
-        false,
-        true,
-        true,
-        true,
-        true,
-        false,
-        false,
-        true,
-        true,
-        true,
-        true,
-        false,
-        true,
-        true,
-        true,
-        true,
-        true,
-        false,
-        true,
-        true
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "   SELECT number, TIMESTAMP, is_finished, l1_tx_count, l2_tx_count, fee_account_address, bloom, priority_ops_onchain_data, hash, parent_hash, commitment, compressed_write_logs, compressed_contracts, eth_prove_tx_id, eth_commit_tx_id, eth_execute_tx_id, merkle_root_hash, l2_to_l1_logs, l2_to_l1_messages, used_contract_hashes, compressed_initial_writes, compressed_repeated_writes, l2_l1_compressed_messages, l2_l1_merkle_root, l1_gas_price, l2_fair_gas_price, rollup_last_leaf_index, zkporter_is_available, bootloader_code_hash, default_aa_code_hash, base_fee_per_gas, aux_data_hash, pass_through_data_hash, meta_parameters_hash, protocol_version, compressed_state_diffs, system_logs, events_queue_commitment, bootloader_initial_content_commitment FROM l1_batches LEFT JOIN commitments ON commitments.l1_batch_number = l1_batches.number WHERE number = 0 OR eth_commit_tx_id IS NOT NULL AND commitment IS NOT NULL ORDER BY number DESC LIMIT 1"
-  },
   "6936e4bb3a508124c9aafa3d31d2026f581453e13a36054eb1c8b044e4b635f9": {
     "describe": {
       "columns": [],
@@ -4704,6 +4718,65 @@
       }
     },
     "query": "UPDATE tokens SET usd_price = $2, usd_price_updated_at = $3, updated_at = NOW() WHERE l1_address = $1"
+  },
+  "6962abe7e273be7a16277cc7a97b8057cd3aca84f032af3723ccf072d056ed02": {
+    "describe": {
+      "columns": [
+        {
+          "name": "value!",
+          "ordinal": 0,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l1_address!",
+          "ordinal": 1,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l2_address!",
+          "ordinal": 2,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "symbol!",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "name!",
+          "ordinal": 4,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "decimals!",
+          "ordinal": 5,
+          "type_info": "Int4"
+        },
+        {
+          "name": "usd_price?",
+          "ordinal": 6,
+          "type_info": "Numeric"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "ByteaArray",
+          "Bytea",
+          "Bytea",
+          "Bytea"
+        ]
+      }
+    },
+    "query": "SELECT storage.value AS \"value!\", tokens.l1_address AS \"l1_address!\", tokens.l2_address AS \"l2_address!\", tokens.symbol AS \"symbol!\", tokens.name AS \"name!\", tokens.decimals AS \"decimals!\", tokens.usd_price AS \"usd_price?\" FROM storage INNER JOIN tokens ON storage.address = tokens.l2_address OR ( storage.address = $2 AND tokens.l2_address = $3 ) WHERE storage.hashed_key = ANY ($1) AND storage.value != $4"
   },
   "6a282084b02cddd8646e984a729b689bdb758e07096fc8cf60f68c6ec5bd6a9c": {
     "describe": {
@@ -4837,18 +4910,6 @@
     },
     "query": "SELECT COUNT(*) AS \"count!\" FROM l1_batches WHERE number = $1 AND hash = $2 AND merkle_root_hash = $3 AND parent_hash = $4 AND l2_l1_merkle_root = $5"
   },
-  "73a0da45bd154cd8b4ab60617acfbf6ed0e23eef67aff3bed919e0f3c34b608e": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "ByteaArray"
-        ]
-      }
-    },
-    "query": "DELETE FROM STORAGE WHERE hashed_key = ANY ($1)"
-  },
   "73fa8be38ce8c9551488c378da26925accc9f569c1b57c082f7e09f49e0db41a": {
     "describe": {
       "columns": [
@@ -4920,6 +4981,38 @@
       }
     },
     "query": "SELECT ( SELECT ARRAY[address, KEY] FROM storage_logs WHERE hashed_key = u.hashed_key ORDER BY miniblock_number, operation_number LIMIT 1 ) AS \"address_and_key?\" FROM UNNEST($1::bytea[]) AS u (hashed_key)"
+  },
+  "7784983f1b79b557de9733dc32d8410232750cdc7ddf1b8bff4b4fbe6389a3c3": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "ByteaArray",
+          "Int4Array",
+          "ByteaArray",
+          "ByteaArray",
+          "NumericArray",
+          "NumericArray",
+          "NumericArray",
+          "NumericArray",
+          "Int4Array",
+          "Int4Array",
+          "VarcharArray",
+          "NumericArray",
+          "JsonbArray",
+          "ByteaArray",
+          "JsonbArray",
+          "Int8Array",
+          "NumericArray",
+          "ByteaArray",
+          "ByteaArray",
+          "ByteaArray",
+          "Int8"
+        ]
+      }
+    },
+    "query": "UPDATE transactions SET hash = data_table.hash, signature = data_table.signature, gas_limit = data_table.gas_limit, max_fee_per_gas = data_table.max_fee_per_gas, max_priority_fee_per_gas = data_table.max_priority_fee_per_gas, gas_per_pubdata_limit = data_table.gas_per_pubdata_limit, input = data_table.input, data = data_table.data, tx_format = data_table.tx_format, miniblock_number = $21, index_in_block = data_table.index_in_block, error = NULLIF(data_table.error, ''), effective_gas_price = data_table.effective_gas_price, execution_info = data_table.new_execution_info, refunded_gas = data_table.refunded_gas, value = data_table.value, contract_address = data_table.contract_address, paymaster = data_table.paymaster, paymaster_input = data_table.paymaster_input, in_mempool = FALSE, updated_at = NOW() FROM ( SELECT data_table_temp.* FROM ( SELECT UNNEST($1::bytea[]) AS initiator_address, UNNEST($2::INT[]) AS nonce, UNNEST($3::bytea[]) AS hash, UNNEST($4::bytea[]) AS signature, UNNEST($5::NUMERIC[]) AS gas_limit, UNNEST($6::NUMERIC[]) AS max_fee_per_gas, UNNEST($7::NUMERIC[]) AS max_priority_fee_per_gas, UNNEST($8::NUMERIC[]) AS gas_per_pubdata_limit, UNNEST($9::INT[]) AS tx_format, UNNEST($10::INTEGER[]) AS index_in_block, UNNEST($11::VARCHAR[]) AS error, UNNEST($12::NUMERIC[]) AS effective_gas_price, UNNEST($13::jsonb[]) AS new_execution_info, UNNEST($14::bytea[]) AS input, UNNEST($15::jsonb[]) AS data, UNNEST($16::BIGINT[]) AS refunded_gas, UNNEST($17::NUMERIC[]) AS value, UNNEST($18::bytea[]) AS contract_address, UNNEST($19::bytea[]) AS paymaster, UNNEST($20::bytea[]) AS paymaster_input ) AS data_table_temp JOIN transactions ON transactions.initiator_address = data_table_temp.initiator_address AND transactions.nonce = data_table_temp.nonce ORDER BY transactions.hash ) AS data_table WHERE transactions.initiator_address = data_table.initiator_address AND transactions.nonce = data_table.nonce"
   },
   "7946e8e74acaa8f1cad603aba6af1333989b3f2caebfe9bcfcfd8772cf5a89fd": {
     "describe": {
@@ -5404,6 +5497,134 @@
     },
     "query": "UPDATE l1_batches SET eth_prove_tx_id = $1, updated_at = NOW() WHERE number BETWEEN $2 AND $3"
   },
+  "832105952074e4ff35252d8e7973faa1b24455abc89820307db5e49a834c0718": {
+    "describe": {
+      "columns": [
+        {
+          "name": "number",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "l1_tx_count",
+          "ordinal": 1,
+          "type_info": "Int4"
+        },
+        {
+          "name": "l2_tx_count",
+          "ordinal": 2,
+          "type_info": "Int4"
+        },
+        {
+          "name": "timestamp",
+          "ordinal": 3,
+          "type_info": "Int8"
+        },
+        {
+          "name": "is_finished",
+          "ordinal": 4,
+          "type_info": "Bool"
+        },
+        {
+          "name": "fee_account_address",
+          "ordinal": 5,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l2_to_l1_logs",
+          "ordinal": 6,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "l2_to_l1_messages",
+          "ordinal": 7,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "bloom",
+          "ordinal": 8,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "priority_ops_onchain_data",
+          "ordinal": 9,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "used_contract_hashes",
+          "ordinal": 10,
+          "type_info": "Jsonb"
+        },
+        {
+          "name": "base_fee_per_gas",
+          "ordinal": 11,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "l1_gas_price",
+          "ordinal": 12,
+          "type_info": "Int8"
+        },
+        {
+          "name": "l2_fair_gas_price",
+          "ordinal": 13,
+          "type_info": "Int8"
+        },
+        {
+          "name": "bootloader_code_hash",
+          "ordinal": 14,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "default_aa_code_hash",
+          "ordinal": 15,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "protocol_version",
+          "ordinal": 16,
+          "type_info": "Int4"
+        },
+        {
+          "name": "system_logs",
+          "ordinal": 17,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "compressed_state_diffs",
+          "ordinal": 18,
+          "type_info": "Bytea"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        false,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      }
+    },
+    "query": "SELECT number, l1_tx_count, l2_tx_count, timestamp, is_finished, fee_account_address, l2_to_l1_logs, l2_to_l1_messages, bloom, priority_ops_onchain_data, used_contract_hashes, base_fee_per_gas, l1_gas_price, l2_fair_gas_price, bootloader_code_hash, default_aa_code_hash, protocol_version, system_logs, compressed_state_diffs FROM l1_batches WHERE eth_commit_tx_id = $1 OR eth_prove_tx_id = $1 OR eth_execute_tx_id = $1"
+  },
   "8337b9e764f63ff2b7f3350b7c964eca579410fe91a8f26eaea95c32609f2fa0": {
     "describe": {
       "columns": [
@@ -5532,39 +5753,49 @@
     },
     "query": "SELECT tx_hash FROM eth_txs_history WHERE eth_tx_id = $1 AND confirmed_at IS NOT NULL"
   },
-  "85015d740f0c8d8602cdea780a446533a40df8c9dc0d6c0fd57c71ee4f6ccc7f": {
+  "85061abe2c39f94e30b491fdcb057ad7843222ffc28f9d020671646cf34fb207": {
     "describe": {
-      "columns": [],
-      "nullable": [],
+      "columns": [
+        {
+          "name": "timestamp",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "  SELECT timestamp FROM l1_batches WHERE eth_commit_tx_id IS NULL AND number > 0 ORDER BY number LIMIT 1"
+  },
+  "85c52cb09c73499507144e3a684c3230c2c71eb4f8ddef43e67fbd33de2747c8": {
+    "describe": {
+      "columns": [
+        {
+          "name": "timestamp",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "hash",
+          "ordinal": 1,
+          "type_info": "Bytea"
+        }
+      ],
+      "nullable": [
+        false,
+        true
+      ],
       "parameters": {
         "Left": [
-          "Int8",
-          "Int4",
-          "Int4",
-          "Int8",
-          "Bool",
-          "Bytea",
-          "ByteaArray",
-          "ByteaArray",
-          "Bytea",
-          "ByteaArray",
-          "Int8",
-          "Int8",
-          "Int8",
-          "Jsonb",
-          "Jsonb",
-          "Numeric",
-          "Int8",
-          "Int8",
-          "Bytea",
-          "Bytea",
-          "Int4",
-          "ByteaArray",
-          "Int8Array"
+          "Int8"
         ]
       }
     },
-    "query": "INSERT INTO l1_batches ( number, l1_tx_count, l2_tx_count, TIMESTAMP, is_finished, fee_account_address, l2_to_l1_logs, l2_to_l1_messages, bloom, priority_ops_onchain_data, predicted_commit_gas_cost, predicted_prove_gas_cost, predicted_execute_gas_cost, initial_bootloader_heap_content, used_contract_hashes, base_fee_per_gas, l1_gas_price, l2_fair_gas_price, bootloader_code_hash, default_aa_code_hash, protocol_version, system_logs, storage_refunds, created_at, updated_at ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, NOW(), NOW() )"
+    "query": "SELECT timestamp, hash FROM l1_batches WHERE number = $1"
   },
   "8664a4d43dba6d25b506da0c5719f34ef143137d5befe90a580486fada7a5d16": {
     "describe": {
@@ -5583,36 +5814,6 @@
       }
     },
     "query": "SELECT MAX(priority_op_id) AS \"op_id\" FROM transactions WHERE is_priority = TRUE"
-  },
-  "86785d1642419aa0c4f571508725aaf36790110d69137ee8f5dcd408c2ff3f10": {
-    "describe": {
-      "columns": [
-        {
-          "name": "l1_batch_number",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "circuit_id",
-          "ordinal": 1,
-          "type_info": "Int2"
-        },
-        {
-          "name": "depth",
-          "ordinal": 2,
-          "type_info": "Int4"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "   UPDATE node_aggregation_witness_jobs_fri SET status = 'queued' WHERE (l1_batch_number, circuit_id, DEPTH) IN ( SELECT prover_jobs_fri.l1_batch_number, prover_jobs_fri.circuit_id, prover_jobs_fri.depth FROM prover_jobs_fri JOIN node_aggregation_witness_jobs_fri nawj ON prover_jobs_fri.l1_batch_number = nawj.l1_batch_number AND prover_jobs_fri.circuit_id = nawj.circuit_id AND prover_jobs_fri.depth = nawj.depth WHERE nawj.status = 'waiting_for_proofs' AND prover_jobs_fri.status = 'successful' AND prover_jobs_fri.aggregation_round = 2 GROUP BY prover_jobs_fri.l1_batch_number, prover_jobs_fri.circuit_id, prover_jobs_fri.depth, nawj.number_of_dependent_jobs HAVING COUNT(*) = nawj.number_of_dependent_jobs ) RETURNING l1_batch_number, circuit_id, DEPTH;"
   },
   "86a381b3af742bb6acf866db3a1f7023eabaa157d980726103417cfcc337e780": {
     "describe": {
@@ -5683,6 +5884,470 @@
     },
     "query": "DELETE FROM l1_batches WHERE number > $1"
   },
+  "87fa6a8075bcc730cac3fa8351897e13c12f3d8e48502d7c6d7cc9f6607b8770": {
+    "describe": {
+      "columns": [
+        {
+          "name": "address",
+          "ordinal": 0,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "key",
+          "ordinal": 1,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "value",
+          "ordinal": 2,
+          "type_info": "Bytea"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "  SELECT address, KEY, value FROM storage_logs WHERE miniblock_number BETWEEN ( SELECT MIN(number) FROM miniblocks WHERE l1_batch_number = $1 ) AND ( SELECT MAX(number) FROM miniblocks WHERE l1_batch_number = $1 ) ORDER BY miniblock_number, operation_number"
+  },
+  "8a2d6866a1f1aa93988a57d20a1d72efb6410800ddaf4d4b02974963186eacfc": {
+    "describe": {
+      "columns": [
+        {
+          "name": "address",
+          "ordinal": 0,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "topic1",
+          "ordinal": 1,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "topic2",
+          "ordinal": 2,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "topic3",
+          "ordinal": 3,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "topic4",
+          "ordinal": 4,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "value",
+          "ordinal": 5,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "block_hash",
+          "ordinal": 6,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l1_batch_number?",
+          "ordinal": 7,
+          "type_info": "Int8"
+        },
+        {
+          "name": "miniblock_number",
+          "ordinal": 8,
+          "type_info": "Int8"
+        },
+        {
+          "name": "tx_hash",
+          "ordinal": 9,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "tx_index_in_block",
+          "ordinal": 10,
+          "type_info": "Int4"
+        },
+        {
+          "name": "event_index_in_block",
+          "ordinal": 11,
+          "type_info": "Int4"
+        },
+        {
+          "name": "event_index_in_tx",
+          "ordinal": 12,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        null,
+        null,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Bytea"
+        ]
+      }
+    },
+    "query": "  SELECT address, topic1, topic2, topic3, topic4, value, NULL::bytea AS \"block_hash\", NULL::BIGINT AS \"l1_batch_number?\", miniblock_number, tx_hash, tx_index_in_block, event_index_in_block, event_index_in_tx FROM events WHERE tx_hash = $1 ORDER BY miniblock_number ASC, event_index_in_block ASC"
+  },
+  "8b693cd482a45743960729627f8a20b8c2f2a7a419cd7382721c56d390a70fbd": {
+    "describe": {
+      "columns": [
+        {
+          "name": "number",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "timestamp",
+          "ordinal": 1,
+          "type_info": "Int8"
+        },
+        {
+          "name": "is_finished",
+          "ordinal": 2,
+          "type_info": "Bool"
+        },
+        {
+          "name": "l1_tx_count",
+          "ordinal": 3,
+          "type_info": "Int4"
+        },
+        {
+          "name": "l2_tx_count",
+          "ordinal": 4,
+          "type_info": "Int4"
+        },
+        {
+          "name": "fee_account_address",
+          "ordinal": 5,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "bloom",
+          "ordinal": 6,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "priority_ops_onchain_data",
+          "ordinal": 7,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "hash",
+          "ordinal": 8,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "parent_hash",
+          "ordinal": 9,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "commitment",
+          "ordinal": 10,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "compressed_write_logs",
+          "ordinal": 11,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "compressed_contracts",
+          "ordinal": 12,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "eth_prove_tx_id",
+          "ordinal": 13,
+          "type_info": "Int4"
+        },
+        {
+          "name": "eth_commit_tx_id",
+          "ordinal": 14,
+          "type_info": "Int4"
+        },
+        {
+          "name": "eth_execute_tx_id",
+          "ordinal": 15,
+          "type_info": "Int4"
+        },
+        {
+          "name": "merkle_root_hash",
+          "ordinal": 16,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l2_to_l1_logs",
+          "ordinal": 17,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "l2_to_l1_messages",
+          "ordinal": 18,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "used_contract_hashes",
+          "ordinal": 19,
+          "type_info": "Jsonb"
+        },
+        {
+          "name": "compressed_initial_writes",
+          "ordinal": 20,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "compressed_repeated_writes",
+          "ordinal": 21,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l2_l1_compressed_messages",
+          "ordinal": 22,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l2_l1_merkle_root",
+          "ordinal": 23,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l1_gas_price",
+          "ordinal": 24,
+          "type_info": "Int8"
+        },
+        {
+          "name": "l2_fair_gas_price",
+          "ordinal": 25,
+          "type_info": "Int8"
+        },
+        {
+          "name": "rollup_last_leaf_index",
+          "ordinal": 26,
+          "type_info": "Int8"
+        },
+        {
+          "name": "zkporter_is_available",
+          "ordinal": 27,
+          "type_info": "Bool"
+        },
+        {
+          "name": "bootloader_code_hash",
+          "ordinal": 28,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "default_aa_code_hash",
+          "ordinal": 29,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "base_fee_per_gas",
+          "ordinal": 30,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "aux_data_hash",
+          "ordinal": 31,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "pass_through_data_hash",
+          "ordinal": 32,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "meta_parameters_hash",
+          "ordinal": 33,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "protocol_version",
+          "ordinal": 34,
+          "type_info": "Int4"
+        },
+        {
+          "name": "compressed_state_diffs",
+          "ordinal": 35,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "system_logs",
+          "ordinal": 36,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "events_queue_commitment",
+          "ordinal": 37,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "bootloader_initial_content_commitment",
+          "ordinal": 38,
+          "type_info": "Bytea"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        false,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        true,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "   SELECT number, timestamp, is_finished, l1_tx_count, l2_tx_count, fee_account_address, bloom, priority_ops_onchain_data, hash, parent_hash, commitment, compressed_write_logs, compressed_contracts, eth_prove_tx_id, eth_commit_tx_id, eth_execute_tx_id, merkle_root_hash, l2_to_l1_logs, l2_to_l1_messages, used_contract_hashes, compressed_initial_writes, compressed_repeated_writes, l2_l1_compressed_messages, l2_l1_merkle_root, l1_gas_price, l2_fair_gas_price, rollup_last_leaf_index, zkporter_is_available, bootloader_code_hash, default_aa_code_hash, base_fee_per_gas, aux_data_hash, pass_through_data_hash, meta_parameters_hash, protocol_version, compressed_state_diffs, system_logs, events_queue_commitment, bootloader_initial_content_commitment FROM l1_batches LEFT JOIN commitments ON commitments.l1_batch_number = l1_batches.number WHERE eth_prove_tx_id IS NOT NULL AND eth_execute_tx_id IS NULL ORDER BY number LIMIT $1"
+  },
+  "8b830f60fb72f0487b6807ef1d1eb23aa8b4718986b53a9a2ecb638d70ed8bd3": {
+    "describe": {
+      "columns": [
+        {
+          "name": "block_hash?",
+          "ordinal": 0,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "address!",
+          "ordinal": 1,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "topic1!",
+          "ordinal": 2,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "topic2!",
+          "ordinal": 3,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "topic3!",
+          "ordinal": 4,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "topic4!",
+          "ordinal": 5,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "value!",
+          "ordinal": 6,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "miniblock_number!",
+          "ordinal": 7,
+          "type_info": "Int8"
+        },
+        {
+          "name": "l1_batch_number?",
+          "ordinal": 8,
+          "type_info": "Int8"
+        },
+        {
+          "name": "tx_hash!",
+          "ordinal": 9,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "tx_index_in_block!",
+          "ordinal": 10,
+          "type_info": "Int4"
+        },
+        {
+          "name": "event_index_in_block!",
+          "ordinal": 11,
+          "type_info": "Int4"
+        },
+        {
+          "name": "event_index_in_tx!",
+          "ordinal": 12,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "    WITH events_select AS ( SELECT address, topic1, topic2, topic3, topic4, value, miniblock_number, tx_hash, tx_index_in_block, event_index_in_block, event_index_in_tx FROM events WHERE miniblock_number > $1 ORDER BY miniblock_number ASC, event_index_in_block ASC ) SELECT miniblocks.hash AS \"block_hash?\", address AS \"address!\", topic1 AS \"topic1!\", topic2 AS \"topic2!\", topic3 AS \"topic3!\", topic4 AS \"topic4!\", value AS \"value!\", miniblock_number AS \"miniblock_number!\", miniblocks.l1_batch_number AS \"l1_batch_number?\", tx_hash AS \"tx_hash!\", tx_index_in_block AS \"tx_index_in_block!\", event_index_in_block AS \"event_index_in_block!\", event_index_in_tx AS \"event_index_in_tx!\" FROM events_select INNER JOIN miniblocks ON events_select.miniblock_number = miniblocks.number ORDER BY miniblock_number ASC, event_index_in_block ASC"
+  },
   "8bb521becb4ba74b3708a12c5dbbf84d6679709f40391062b5c070eabc675275": {
     "describe": {
       "columns": [
@@ -5703,6 +6368,21 @@
       }
     },
     "query": "SELECT DISTINCT hashed_key FROM storage_logs WHERE miniblock_number BETWEEN $1 AND $2"
+  },
+  "8cef9947b368326d66badaf025d10c219aa4d6f4cb8e3b9272a65534df833e56": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Int4",
+          "Int2",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO gpu_prover_queue_fri ( instance_host, instance_port, instance_status, specialized_prover_group_id, zone, created_at, updated_at ) VALUES (CAST($1::TEXT AS inet), $2, 'available', $3, $4, NOW(), NOW()) ON CONFLICT (instance_host, instance_port, zone) DO UPDATE SET instance_status = 'available', specialized_prover_group_id = $3, zone = $4, updated_at = NOW()"
   },
   "8d422a28a803c1fd522064aac9794d18733ced39340420ebc89081542065a55c": {
     "describe": {
@@ -5857,6 +6537,18 @@
     },
     "query": "   UPDATE prover_jobs SET status = 'in_progress', attempts = attempts + 1, updated_at = NOW(), processing_started_at = NOW() WHERE id = ( SELECT id FROM prover_jobs WHERE circuit_type = ANY ($1) AND status = 'queued' AND protocol_version = ANY ($2) ORDER BY aggregation_round DESC, l1_batch_number ASC, id ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING prover_jobs.*"
   },
+  "8d6977e921b3e152b912c8ce49b4135353eb7267cf4dbcbf0845108d7619c146": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "ByteaArray"
+        ]
+      }
+    },
+    "query": "DELETE FROM storage WHERE hashed_key = ANY ($1)"
+  },
   "8f367903e3ff6edd7ebcc63c081f0075658ef407d19d5fd7b42733a982137f9d": {
     "describe": {
       "columns": [
@@ -5892,6 +6584,129 @@
       }
     },
     "query": "SELECT l1_address FROM tokens WHERE well_known = false"
+  },
+  "8ff7952329b155cf5d18dc2caf1bf54f1276879fe5e01dc293b7adb0d46ad344": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "l1_batch_number",
+          "ordinal": 1,
+          "type_info": "Int8"
+        },
+        {
+          "name": "circuit_id",
+          "ordinal": 2,
+          "type_info": "Int2"
+        },
+        {
+          "name": "depth",
+          "ordinal": 3,
+          "type_info": "Int4"
+        },
+        {
+          "name": "status",
+          "ordinal": 4,
+          "type_info": "Text"
+        },
+        {
+          "name": "attempts",
+          "ordinal": 5,
+          "type_info": "Int2"
+        },
+        {
+          "name": "aggregations_url",
+          "ordinal": 6,
+          "type_info": "Text"
+        },
+        {
+          "name": "processing_started_at",
+          "ordinal": 7,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "time_taken",
+          "ordinal": 8,
+          "type_info": "Time"
+        },
+        {
+          "name": "error",
+          "ordinal": 9,
+          "type_info": "Text"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 10,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 11,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "number_of_dependent_jobs",
+          "ordinal": 12,
+          "type_info": "Int4"
+        },
+        {
+          "name": "protocol_version",
+          "ordinal": 13,
+          "type_info": "Int4"
+        },
+        {
+          "name": "picked_by",
+          "ordinal": 14,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        true,
+        true,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Int4Array",
+          "Text"
+        ]
+      }
+    },
+    "query": "   UPDATE node_aggregation_witness_jobs_fri SET status = 'in_progress', attempts = attempts + 1, updated_at = NOW(), processing_started_at = NOW(), picked_by = $2 WHERE id = ( SELECT id FROM node_aggregation_witness_jobs_fri WHERE status = 'queued' AND protocol_version = ANY ($1) ORDER BY l1_batch_number ASC, depth ASC, id ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING node_aggregation_witness_jobs_fri.*"
+  },
+  "9123ad05486af3a8304b946683d2c93113eb3516d21948b90beeec601eef3baa": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int8",
+          "Bytea",
+          "Bytea",
+          "Bytea",
+          "Bytea",
+          "Bytea"
+        ]
+      }
+    },
+    "query": "INSERT INTO prover_protocol_versions ( id, timestamp, recursion_scheduler_level_vk_hash, recursion_node_level_vk_hash, recursion_leaf_level_vk_hash, recursion_circuits_set_vks_hash, verifier_address, created_at ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())"
   },
   "9217b96d49b3bbdf755fcf2b7bc2fa387dd55d53f1535f629cfba58f1f9bde85": {
     "describe": {
@@ -5998,111 +6813,6 @@
       }
     },
     "query": "  SELECT * FROM eth_txs_history WHERE eth_tx_id = $1 ORDER BY created_at DESC LIMIT 1"
-  },
-  "93318b2c8cd2dc4630d9718d516dab5946bf401c78d03609d8769d0163171230": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "l1_batch_number",
-          "ordinal": 1,
-          "type_info": "Int8"
-        },
-        {
-          "name": "circuit_id",
-          "ordinal": 2,
-          "type_info": "Int2"
-        },
-        {
-          "name": "depth",
-          "ordinal": 3,
-          "type_info": "Int4"
-        },
-        {
-          "name": "status",
-          "ordinal": 4,
-          "type_info": "Text"
-        },
-        {
-          "name": "attempts",
-          "ordinal": 5,
-          "type_info": "Int2"
-        },
-        {
-          "name": "aggregations_url",
-          "ordinal": 6,
-          "type_info": "Text"
-        },
-        {
-          "name": "processing_started_at",
-          "ordinal": 7,
-          "type_info": "Timestamp"
-        },
-        {
-          "name": "time_taken",
-          "ordinal": 8,
-          "type_info": "Time"
-        },
-        {
-          "name": "error",
-          "ordinal": 9,
-          "type_info": "Text"
-        },
-        {
-          "name": "created_at",
-          "ordinal": 10,
-          "type_info": "Timestamp"
-        },
-        {
-          "name": "updated_at",
-          "ordinal": 11,
-          "type_info": "Timestamp"
-        },
-        {
-          "name": "number_of_dependent_jobs",
-          "ordinal": 12,
-          "type_info": "Int4"
-        },
-        {
-          "name": "protocol_version",
-          "ordinal": 13,
-          "type_info": "Int4"
-        },
-        {
-          "name": "picked_by",
-          "ordinal": 14,
-          "type_info": "Text"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true,
-        true,
-        true,
-        true,
-        false,
-        false,
-        true,
-        true,
-        true
-      ],
-      "parameters": {
-        "Left": [
-          "Int4Array",
-          "Text"
-        ]
-      }
-    },
-    "query": "   UPDATE node_aggregation_witness_jobs_fri SET status = 'in_progress', attempts = attempts + 1, updated_at = NOW(), processing_started_at = NOW(), picked_by = $2 WHERE id = ( SELECT id FROM node_aggregation_witness_jobs_fri WHERE status = 'queued' AND protocol_version = ANY ($1) ORDER BY l1_batch_number ASC, DEPTH ASC, id ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING node_aggregation_witness_jobs_fri.*"
   },
   "93e4b7516660be520bd87538589e789bc210cc231244ed4e0c58c4c61bf55dbb": {
     "describe": {
@@ -6469,6 +7179,22 @@
     },
     "query": "   UPDATE scheduler_witness_jobs SET status = 'in_progress', attempts = attempts + 1, updated_at = NOW(), processing_started_at = NOW() WHERE l1_batch_number = ( SELECT l1_batch_number FROM scheduler_witness_jobs WHERE l1_batch_number <= $3 AND ( status = 'queued' OR ( status = 'in_progress' AND processing_started_at < NOW() - $1::INTERVAL ) OR ( status = 'failed' AND attempts < $2 ) ) AND protocol_version = ANY ($4) ORDER BY l1_batch_number ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING scheduler_witness_jobs.*"
   },
+  "9573329239563e36dc302d1cd5fcd2e9620668f9e3b9989123926c02b9ca5788": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Int8",
+          "Int2",
+          "Int4",
+          "Int4"
+        ]
+      }
+    },
+    "query": "UPDATE node_aggregation_witness_jobs_fri SET aggregations_url = $1, number_of_dependent_jobs = $5, updated_at = NOW() WHERE l1_batch_number = $2 AND circuit_id = $3 AND depth = $4"
+  },
   "957ceda740ffb36740acf1e3fbacf76a2ea7422dd9d76a38d745113359e4b7a6": {
     "describe": {
       "columns": [
@@ -6543,6 +7269,76 @@
     },
     "query": "   SELECT number FROM l1_batches LEFT JOIN eth_txs_history AS commit_tx ON (l1_batches.eth_commit_tx_id = commit_tx.eth_tx_id) WHERE commit_tx.confirmed_at IS NOT NULL ORDER BY number DESC LIMIT 1"
   },
+  "99db5beeb379836fc48aa48d060101a205d0c24fefbab1af5a0ffdbf54f45dea": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "instance_host",
+          "ordinal": 1,
+          "type_info": "Inet"
+        },
+        {
+          "name": "instance_port",
+          "ordinal": 2,
+          "type_info": "Int4"
+        },
+        {
+          "name": "instance_status",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "specialized_prover_group_id",
+          "ordinal": 4,
+          "type_info": "Int2"
+        },
+        {
+          "name": "zone",
+          "ordinal": 5,
+          "type_info": "Text"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 6,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 7,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "processing_started_at",
+          "ordinal": 8,
+          "type_info": "Timestamp"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Interval",
+          "Int2",
+          "Text"
+        ]
+      }
+    },
+    "query": "   UPDATE gpu_prover_queue_fri SET instance_status = 'reserved', updated_at = NOW(), processing_started_at = NOW() WHERE id IN ( SELECT id FROM gpu_prover_queue_fri WHERE specialized_prover_group_id = $2 AND zone = $3 AND ( instance_status = 'available' OR ( instance_status = 'reserved' AND processing_started_at < NOW() - $1::INTERVAL ) ) ORDER BY updated_at ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING gpu_prover_queue_fri.*"
+  },
   "9a326e8fb44f8ebfdd26d945b73a054fd6802551594b23687d057a3954e24f33": {
     "describe": {
       "columns": [
@@ -6584,6 +7380,28 @@
     },
     "query": "SELECT COUNT(*) AS \"count!\" FROM ( SELECT * FROM storage_logs WHERE storage_logs.hashed_key = $1 ORDER BY storage_logs.miniblock_number DESC, storage_logs.operation_number DESC LIMIT 1 ) sl WHERE sl.value != $2"
   },
+  "9a862e80e7d38bc3b8122eb59d5bf913c382c58c09ff29666a88ca37d5117f62": {
+    "describe": {
+      "columns": [
+        {
+          "name": "bytecode",
+          "ordinal": 0,
+          "type_info": "Bytea"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Bytea",
+          "Int8",
+          "Bytea"
+        ]
+      }
+    },
+    "query": "SELECT bytecode FROM ( SELECT * FROM storage_logs WHERE storage_logs.hashed_key = $1 AND storage_logs.miniblock_number <= $2 ORDER BY storage_logs.miniblock_number DESC, storage_logs.operation_number DESC LIMIT 1 ) t JOIN factory_deps ON value = factory_deps.bytecode_hash WHERE value != $3"
+  },
   "9bebe499f3df756867fa3fe15fbd05bf2edf3b18f554928020e2e20803400b5d": {
     "describe": {
       "columns": [
@@ -6611,32 +7429,6 @@
       }
     },
     "query": "  SELECT number, hash FROM miniblocks WHERE number >= $1 AND protocol_version = $2 ORDER BY number LIMIT $3"
-  },
-  "9cb4ab250279efba544219d74b95e7eb9f70f38978affdf704e0fd75ec7ce078": {
-    "describe": {
-      "columns": [
-        {
-          "name": "timestamp",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "hash",
-          "ordinal": 1,
-          "type_info": "Bytea"
-        }
-      ],
-      "nullable": [
-        false,
-        true
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      }
-    },
-    "query": "SELECT TIMESTAMP, hash FROM l1_batches WHERE number = $1"
   },
   "9ce92e1e4a78817c8c27f3ebd8c367f621dc3d0d5f3a3eaf2c6a89c4837caf6b": {
     "describe": {
@@ -6837,134 +7629,6 @@
       }
     },
     "query": "SELECT * FROM scheduler_dependency_tracker_fri WHERE l1_batch_number = $1"
-  },
-  "9efebfa1e17277b8b44734d8bf01d5502890c46f1bb8e065aff3eadc0df6dc84": {
-    "describe": {
-      "columns": [
-        {
-          "name": "number",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "l1_tx_count",
-          "ordinal": 1,
-          "type_info": "Int4"
-        },
-        {
-          "name": "l2_tx_count",
-          "ordinal": 2,
-          "type_info": "Int4"
-        },
-        {
-          "name": "timestamp",
-          "ordinal": 3,
-          "type_info": "Int8"
-        },
-        {
-          "name": "is_finished",
-          "ordinal": 4,
-          "type_info": "Bool"
-        },
-        {
-          "name": "fee_account_address",
-          "ordinal": 5,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l2_to_l1_logs",
-          "ordinal": 6,
-          "type_info": "ByteaArray"
-        },
-        {
-          "name": "l2_to_l1_messages",
-          "ordinal": 7,
-          "type_info": "ByteaArray"
-        },
-        {
-          "name": "bloom",
-          "ordinal": 8,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "priority_ops_onchain_data",
-          "ordinal": 9,
-          "type_info": "ByteaArray"
-        },
-        {
-          "name": "used_contract_hashes",
-          "ordinal": 10,
-          "type_info": "Jsonb"
-        },
-        {
-          "name": "base_fee_per_gas",
-          "ordinal": 11,
-          "type_info": "Numeric"
-        },
-        {
-          "name": "l1_gas_price",
-          "ordinal": 12,
-          "type_info": "Int8"
-        },
-        {
-          "name": "l2_fair_gas_price",
-          "ordinal": 13,
-          "type_info": "Int8"
-        },
-        {
-          "name": "bootloader_code_hash",
-          "ordinal": 14,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "default_aa_code_hash",
-          "ordinal": 15,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "protocol_version",
-          "ordinal": 16,
-          "type_info": "Int4"
-        },
-        {
-          "name": "compressed_state_diffs",
-          "ordinal": 17,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "system_logs",
-          "ordinal": 18,
-          "type_info": "ByteaArray"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true,
-        true,
-        true,
-        true,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      }
-    },
-    "query": "SELECT number, l1_tx_count, l2_tx_count, TIMESTAMP, is_finished, fee_account_address, l2_to_l1_logs, l2_to_l1_messages, bloom, priority_ops_onchain_data, used_contract_hashes, base_fee_per_gas, l1_gas_price, l2_fair_gas_price, bootloader_code_hash, default_aa_code_hash, protocol_version, compressed_state_diffs, system_logs FROM l1_batches WHERE number = $1"
   },
   "9f856900654bf869794c7c26f29e62242e6526f152c6cc995d1a08f30047ef18": {
     "describe": {
@@ -7208,7 +7872,124 @@
     },
     "query": "SELECT protocol_version FROM witness_inputs WHERE l1_batch_number = $1"
   },
-  "a307411597dedf5656a1fffc047c5350020f6e8e4e7de6d7a9e84e4b3bbf5042": {
+  "a4f240188c1447f5b6dcef33dfcc9d00b105f62a6b4c3949a825bea979954160": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "DELETE FROM basic_witness_input_producer_jobs"
+  },
+  "a5964661d679083e93f33847dd918ed0208f2e546a3f478bf2b4cde0780cceb1": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int4"
+        ]
+      }
+    },
+    "query": "INSERT INTO node_aggregation_witness_jobs (l1_batch_number, protocol_version, status, created_at, updated_at) VALUES ($1, $2, 'waiting_for_artifacts', NOW(), NOW())"
+  },
+  "a870d2eb52c3fe4d366dde87bc851590f4bdc1344ba1861e345058bc1243b1ef": {
+    "describe": {
+      "columns": [
+        {
+          "name": "timestamp",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "virtual_blocks",
+          "ordinal": 1,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      }
+    },
+    "query": "  SELECT timestamp, virtual_blocks FROM miniblocks WHERE number BETWEEN $1 AND $2 ORDER BY number"
+  },
+  "a8b32073a67ad77caab11e73a5cac5aa5b5382648ff95d6787a309eb3f64d434": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      }
+    },
+    "query": "DELETE FROM eth_txs_history WHERE id = $1"
+  },
+  "a9b1a31def214f8b1441dc3ab720bd270f3991c9f1c7528256276e176d532163": {
+    "describe": {
+      "columns": [
+        {
+          "name": "l1_batch_number",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Bytea"
+        ]
+      }
+    },
+    "query": "SELECT l1_batch_number FROM initial_writes WHERE hashed_key = $1"
+  },
+  "aa7ae476aed5979227887891e9be995924588aa10ccba7424d6ce58f811eaa02": {
+    "describe": {
+      "columns": [
+        {
+          "name": "number!",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT COALESCE(MAX(number), 0) AS \"number!\" FROM l1_batches WHERE eth_prove_tx_id IS NOT NULL"
+  },
+  "ac32678a8f5f7abcd17395a15c0539ef915e7b0c655d5a41df3a7b57a13fd8d1": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Int4",
+          "Int4",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "UPDATE gpu_prover_queue SET instance_status = $1, updated_at = NOW(), queue_free_slots = $4 WHERE instance_host = $2::TEXT::inet AND instance_port = $3 AND region = $5 AND zone = $6"
+  },
+  "ac68a8386bae6d31810858c92d41eae570aa9422cf32716457bac9649ffa7224": {
     "describe": {
       "columns": [
         {
@@ -7450,183 +8231,11 @@
       ],
       "parameters": {
         "Left": [
-          "Int8",
-          "Int8",
           "Int8"
         ]
       }
     },
-    "query": "   SELECT number, TIMESTAMP, is_finished, l1_tx_count, l2_tx_count, fee_account_address, bloom, priority_ops_onchain_data, hash, parent_hash, commitment, compressed_write_logs, compressed_contracts, eth_prove_tx_id, eth_commit_tx_id, eth_execute_tx_id, merkle_root_hash, l2_to_l1_logs, l2_to_l1_messages, used_contract_hashes, compressed_initial_writes, compressed_repeated_writes, l2_l1_compressed_messages, l2_l1_merkle_root, l1_gas_price, l2_fair_gas_price, rollup_last_leaf_index, zkporter_is_available, bootloader_code_hash, default_aa_code_hash, base_fee_per_gas, aux_data_hash, pass_through_data_hash, meta_parameters_hash, protocol_version, compressed_state_diffs, system_logs, events_queue_commitment, bootloader_initial_content_commitment FROM l1_batches LEFT JOIN commitments ON commitments.l1_batch_number = l1_batches.number WHERE number BETWEEN $1 AND $2 ORDER BY number LIMIT $3"
-  },
-  "a4f240188c1447f5b6dcef33dfcc9d00b105f62a6b4c3949a825bea979954160": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "DELETE FROM basic_witness_input_producer_jobs"
-  },
-  "a5964661d679083e93f33847dd918ed0208f2e546a3f478bf2b4cde0780cceb1": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Int8",
-          "Int4"
-        ]
-      }
-    },
-    "query": "INSERT INTO node_aggregation_witness_jobs (l1_batch_number, protocol_version, status, created_at, updated_at) VALUES ($1, $2, 'waiting_for_artifacts', NOW(), NOW())"
-  },
-  "a6b5fb9b8f8b79fd9f28cce91385a37e4d712059c6207645d0db0f6c56f5abf4": {
-    "describe": {
-      "columns": [
-        {
-          "name": "is_replaced!",
-          "ordinal": 0,
-          "type_info": "Bool"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": [
-          "Bytea",
-          "Bytea",
-          "Int8",
-          "Bytea",
-          "Numeric",
-          "Numeric",
-          "Numeric",
-          "Numeric",
-          "Bytea",
-          "Jsonb",
-          "Int4",
-          "Bytea",
-          "Numeric",
-          "Bytea",
-          "Bytea",
-          "Int8",
-          "Int4",
-          "Int4",
-          "Timestamp"
-        ]
-      }
-    },
-    "query": "   INSERT INTO transactions ( hash, is_priority, initiator_address, nonce, signature, gas_limit, max_fee_per_gas, max_priority_fee_per_gas, gas_per_pubdata_limit, INPUT, DATA, tx_format, contract_address, VALUE, paymaster, paymaster_input, execution_info, received_at, created_at, updated_at ) VALUES ( $1, FALSE, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, JSONB_BUILD_OBJECT('gas_used', $16::BIGINT, 'storage_writes', $17::INT, 'contracts_used', $18::INT), $19, NOW(), NOW() ) ON CONFLICT (initiator_address, nonce) DO UPDATE SET hash = $1, signature = $4, gas_limit = $5, max_fee_per_gas = $6, max_priority_fee_per_gas = $7, gas_per_pubdata_limit = $8, INPUT = $9, DATA = $10, tx_format = $11, contract_address = $12, VALUE = $13, paymaster = $14, paymaster_input = $15, execution_info = JSONB_BUILD_OBJECT('gas_used', $16::BIGINT, 'storage_writes', $17::INT, 'contracts_used', $18::INT), in_mempool = FALSE, received_at = $19, created_at = NOW(), updated_at = NOW(), error = NULL WHERE transactions.is_priority = FALSE AND transactions.miniblock_number IS NULL RETURNING ( SELECT hash FROM transactions WHERE transactions.initiator_address = $2 AND transactions.nonce = $3 ) IS NOT NULL AS \"is_replaced!\""
-  },
-  "a8b32073a67ad77caab11e73a5cac5aa5b5382648ff95d6787a309eb3f64d434": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Int4"
-        ]
-      }
-    },
-    "query": "DELETE FROM eth_txs_history WHERE id = $1"
-  },
-  "a9b1a31def214f8b1441dc3ab720bd270f3991c9f1c7528256276e176d532163": {
-    "describe": {
-      "columns": [
-        {
-          "name": "l1_batch_number",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Bytea"
-        ]
-      }
-    },
-    "query": "SELECT l1_batch_number FROM initial_writes WHERE hashed_key = $1"
-  },
-  "aa7ae476aed5979227887891e9be995924588aa10ccba7424d6ce58f811eaa02": {
-    "describe": {
-      "columns": [
-        {
-          "name": "number!",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "SELECT COALESCE(MAX(number), 0) AS \"number!\" FROM l1_batches WHERE eth_prove_tx_id IS NOT NULL"
-  },
-  "aa946cee8be2676560de69837adef5fca1715bcd8f4cf734eb6c25bade022288": {
-    "describe": {
-      "columns": [
-        {
-          "name": "value!",
-          "ordinal": 0,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l1_address!",
-          "ordinal": 1,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l2_address!",
-          "ordinal": 2,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "symbol!",
-          "ordinal": 3,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "name!",
-          "ordinal": 4,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "decimals!",
-          "ordinal": 5,
-          "type_info": "Int4"
-        },
-        {
-          "name": "usd_price?",
-          "ordinal": 6,
-          "type_info": "Numeric"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true
-      ],
-      "parameters": {
-        "Left": [
-          "ByteaArray",
-          "Bytea",
-          "Bytea",
-          "Bytea"
-        ]
-      }
-    },
-    "query": "SELECT STORAGE.value AS \"value!\", tokens.l1_address AS \"l1_address!\", tokens.l2_address AS \"l2_address!\", tokens.symbol AS \"symbol!\", tokens.name AS \"name!\", tokens.decimals AS \"decimals!\", tokens.usd_price AS \"usd_price?\" FROM STORAGE INNER JOIN tokens ON STORAGE.address = tokens.l2_address OR ( STORAGE.address = $2 AND tokens.l2_address = $3 ) WHERE STORAGE.hashed_key = ANY ($1) AND STORAGE.value != $4"
+    "query": "   SELECT number, timestamp, is_finished, l1_tx_count, l2_tx_count, fee_account_address, bloom, priority_ops_onchain_data, hash, parent_hash, commitment, compressed_write_logs, compressed_contracts, eth_prove_tx_id, eth_commit_tx_id, eth_execute_tx_id, merkle_root_hash, l2_to_l1_logs, l2_to_l1_messages, used_contract_hashes, compressed_initial_writes, compressed_repeated_writes, l2_l1_compressed_messages, l2_l1_merkle_root, l1_gas_price, l2_fair_gas_price, rollup_last_leaf_index, zkporter_is_available, bootloader_code_hash, default_aa_code_hash, base_fee_per_gas, aux_data_hash, pass_through_data_hash, meta_parameters_hash, protocol_version, compressed_state_diffs, system_logs, events_queue_commitment, bootloader_initial_content_commitment FROM l1_batches LEFT JOIN commitments ON commitments.l1_batch_number = l1_batches.number WHERE eth_commit_tx_id IS NOT NULL AND eth_prove_tx_id IS NULL ORDER BY number LIMIT $1"
   },
   "ad172dc1daa3b151b049bf824dc70dbb14e333ed2a62db9afdaaef3b8af1c315": {
     "describe": {
@@ -7738,26 +8347,6 @@
     },
     "query": "SELECT l1_batch_number, l1_batch_tx_index FROM transactions WHERE hash = $1"
   },
-  "aeff16247a806278c4674b0b39403ed27e34592cf9090b878f160de6b5b0d070": {
-    "describe": {
-      "columns": [
-        {
-          "name": "timestamp",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      }
-    },
-    "query": "SELECT TIMESTAMP FROM miniblocks WHERE number = $1"
-  },
   "b11978a1a31a57fe754d08f7bf547c14e5474786700b5ed7445596568d18543a": {
     "describe": {
       "columns": [],
@@ -7801,20 +8390,6 @@
     },
     "query": "DELETE FROM transactions WHERE in_mempool = TRUE AND initiator_address = ANY ($1)"
   },
-  "b3f45414cdae53a99c7cf22860267c83e745c62a3a145417311c124bafcc0e6a": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Int4",
-          "Text"
-        ]
-      }
-    },
-    "query": "UPDATE gpu_prover_queue_fri SET instance_status = 'available', updated_at = NOW() WHERE instance_host = $1::TEXT::inet AND instance_port = $2 AND instance_status = 'full' AND ZONE = $3"
-  },
   "b4da918ee3b36b56d95c8834edebe65eb48ebb8270fa1e6ccf73ad354fd71134": {
     "describe": {
       "columns": [
@@ -7838,6 +8413,36 @@
       }
     },
     "query": "SELECT l1_address, l2_address FROM tokens WHERE well_known = true"
+  },
+  "b5c3b03dd8857e5d247b729dcce6da08b061dd114c32cae8a2a19da11cb14228": {
+    "describe": {
+      "columns": [
+        {
+          "name": "l1_batch_number",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "circuit_id",
+          "ordinal": 1,
+          "type_info": "Int2"
+        },
+        {
+          "name": "depth",
+          "ordinal": 2,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "   UPDATE node_aggregation_witness_jobs_fri SET status = 'queued' WHERE (l1_batch_number, circuit_id, depth) IN ( SELECT prover_jobs_fri.l1_batch_number, prover_jobs_fri.circuit_id, prover_jobs_fri.depth FROM prover_jobs_fri JOIN node_aggregation_witness_jobs_fri nawj ON prover_jobs_fri.l1_batch_number = nawj.l1_batch_number AND prover_jobs_fri.circuit_id = nawj.circuit_id AND prover_jobs_fri.depth = nawj.depth WHERE nawj.status = 'waiting_for_proofs' AND prover_jobs_fri.status = 'successful' AND prover_jobs_fri.aggregation_round = 1 AND prover_jobs_fri.depth = 0 GROUP BY prover_jobs_fri.l1_batch_number, prover_jobs_fri.circuit_id, prover_jobs_fri.depth, nawj.number_of_dependent_jobs HAVING COUNT(*) = nawj.number_of_dependent_jobs ) RETURNING l1_batch_number, circuit_id, depth;"
   },
   "b5cda9e5a5173c1791ec7b7ca83ed13363c0c3e56c9c1fff3c61d03444bae751": {
     "describe": {
@@ -7904,189 +8509,34 @@
     },
     "query": "  SELECT l1_block_number FROM transactions WHERE priority_op_id IS NOT NULL ORDER BY priority_op_id DESC LIMIT 1"
   },
-  "b7f2b226d21e76574d49d97cf20e7044a64d4a6945962652283506f614c623dd": {
-    "describe": {
-      "columns": [
-        {
-          "name": "hashed_key",
-          "ordinal": 0,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "value!",
-          "ordinal": 1,
-          "type_info": "Bytea"
-        }
-      ],
-      "nullable": [
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "ByteaArray"
-        ]
-      }
-    },
-    "query": "SELECT hashed_key, VALUE AS \"value!\" FROM STORAGE WHERE hashed_key = ANY ($1)"
-  },
-  "b8be20374285daf46024cf17bf1221fc22f57ce28dfa1fcad1e2370310125929": {
+  "b9142db95549afb742fcda5e2d030afd4b5d5ccbd983fb2ee4f619648015a1c2": {
     "describe": {
       "columns": [],
       "nullable": [],
       "parameters": {
         "Left": [
-          "ByteaArray",
-          "Int4Array",
-          "ByteaArray",
-          "ByteaArray",
-          "NumericArray",
-          "NumericArray",
-          "NumericArray",
-          "NumericArray",
-          "Int4Array",
-          "Int4Array",
-          "VarcharArray",
-          "NumericArray",
-          "JsonbArray",
-          "ByteaArray",
-          "JsonbArray",
-          "Int8Array",
-          "NumericArray",
-          "ByteaArray",
-          "ByteaArray",
-          "ByteaArray",
-          "Int8"
+          "Bytea",
+          "Bytea",
+          "Numeric",
+          "Numeric",
+          "Numeric",
+          "Jsonb",
+          "Int8",
+          "Numeric",
+          "Numeric",
+          "Bytea",
+          "Int4",
+          "Numeric",
+          "Bytea",
+          "Bytea",
+          "Int4",
+          "Numeric",
+          "Bytea",
+          "Timestamp"
         ]
       }
     },
-    "query": "UPDATE transactions SET hash = data_table.hash, signature = data_table.signature, gas_limit = data_table.gas_limit, max_fee_per_gas = data_table.max_fee_per_gas, max_priority_fee_per_gas = data_table.max_priority_fee_per_gas, gas_per_pubdata_limit = data_table.gas_per_pubdata_limit, INPUT = data_table.input, DATA = data_table.data, tx_format = data_table.tx_format, miniblock_number = $21, index_in_block = data_table.index_in_block, error = NULLIF(data_table.error, ''), effective_gas_price = data_table.effective_gas_price, execution_info = data_table.new_execution_info, refunded_gas = data_table.refunded_gas, VALUE = data_table.value, contract_address = data_table.contract_address, paymaster = data_table.paymaster, paymaster_input = data_table.paymaster_input, in_mempool = FALSE, updated_at = NOW() FROM ( SELECT data_table_temp.* FROM ( SELECT UNNEST($1::bytea[]) AS initiator_address, UNNEST($2::INT[]) AS nonce, UNNEST($3::bytea[]) AS hash, UNNEST($4::bytea[]) AS signature, UNNEST($5::NUMERIC[]) AS gas_limit, UNNEST($6::NUMERIC[]) AS max_fee_per_gas, UNNEST($7::NUMERIC[]) AS max_priority_fee_per_gas, UNNEST($8::NUMERIC[]) AS gas_per_pubdata_limit, UNNEST($9::INT[]) AS tx_format, UNNEST($10::INTEGER[]) AS index_in_block, UNNEST($11::VARCHAR[]) AS error, UNNEST($12::NUMERIC[]) AS effective_gas_price, UNNEST($13::jsonb[]) AS new_execution_info, UNNEST($14::bytea[]) AS INPUT, UNNEST($15::jsonb[]) AS DATA, UNNEST($16::BIGINT[]) AS refunded_gas, UNNEST($17::NUMERIC[]) AS VALUE, UNNEST($18::bytea[]) AS contract_address, UNNEST($19::bytea[]) AS paymaster, UNNEST($20::bytea[]) AS paymaster_input ) AS data_table_temp JOIN transactions ON transactions.initiator_address = data_table_temp.initiator_address AND transactions.nonce = data_table_temp.nonce ORDER BY transactions.hash ) AS data_table WHERE transactions.initiator_address = data_table.initiator_address AND transactions.nonce = data_table.nonce"
-  },
-  "b955a2a64ea1d9d778f6d964693bbb05d6ac46d6f322cf6142f4eb11cca481df": {
-    "describe": {
-      "columns": [
-        {
-          "name": "number",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "l1_tx_count",
-          "ordinal": 1,
-          "type_info": "Int4"
-        },
-        {
-          "name": "l2_tx_count",
-          "ordinal": 2,
-          "type_info": "Int4"
-        },
-        {
-          "name": "timestamp",
-          "ordinal": 3,
-          "type_info": "Int8"
-        },
-        {
-          "name": "is_finished",
-          "ordinal": 4,
-          "type_info": "Bool"
-        },
-        {
-          "name": "fee_account_address",
-          "ordinal": 5,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l2_to_l1_logs",
-          "ordinal": 6,
-          "type_info": "ByteaArray"
-        },
-        {
-          "name": "l2_to_l1_messages",
-          "ordinal": 7,
-          "type_info": "ByteaArray"
-        },
-        {
-          "name": "bloom",
-          "ordinal": 8,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "priority_ops_onchain_data",
-          "ordinal": 9,
-          "type_info": "ByteaArray"
-        },
-        {
-          "name": "used_contract_hashes",
-          "ordinal": 10,
-          "type_info": "Jsonb"
-        },
-        {
-          "name": "base_fee_per_gas",
-          "ordinal": 11,
-          "type_info": "Numeric"
-        },
-        {
-          "name": "l1_gas_price",
-          "ordinal": 12,
-          "type_info": "Int8"
-        },
-        {
-          "name": "l2_fair_gas_price",
-          "ordinal": 13,
-          "type_info": "Int8"
-        },
-        {
-          "name": "bootloader_code_hash",
-          "ordinal": 14,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "default_aa_code_hash",
-          "ordinal": 15,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "protocol_version",
-          "ordinal": 16,
-          "type_info": "Int4"
-        },
-        {
-          "name": "compressed_state_diffs",
-          "ordinal": 17,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "system_logs",
-          "ordinal": 18,
-          "type_info": "ByteaArray"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true,
-        true,
-        true,
-        true,
-        false
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "  SELECT number, l1_tx_count, l2_tx_count, TIMESTAMP, is_finished, fee_account_address, l2_to_l1_logs, l2_to_l1_messages, bloom, priority_ops_onchain_data, used_contract_hashes, base_fee_per_gas, l1_gas_price, l2_fair_gas_price, bootloader_code_hash, default_aa_code_hash, protocol_version, compressed_state_diffs, system_logs FROM l1_batches ORDER BY number DESC LIMIT 1"
+    "query": "INSERT INTO transactions ( hash, is_priority, initiator_address, gas_limit, max_fee_per_gas, gas_per_pubdata_limit, data, priority_op_id, full_fee, layer_2_tip_fee, contract_address, l1_block_number, value, paymaster, paymaster_input, tx_format, l1_tx_mint, l1_tx_refund_recipient, received_at, created_at, updated_at ) VALUES ( $1, TRUE, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW(), NOW() ) ON CONFLICT (hash) DO NOTHING"
   },
   "b97eeca6a78bdc9756c20e6fd8dadb9cd71fdedaf12cae65c93941f26b788289": {
     "describe": {
@@ -8100,123 +8550,6 @@
       }
     },
     "query": "UPDATE witness_inputs_fri SET status = 'successful', updated_at = NOW(), time_taken = $1 WHERE l1_batch_number = $2"
-  },
-  "b994c8fae45dbb369874e89c33f97600558d062e8640247f544e3925c65f7bc3": {
-    "describe": {
-      "columns": [
-        {
-          "name": "bytecode",
-          "ordinal": 0,
-          "type_info": "Bytea"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Bytea",
-          "Int8",
-          "Bytea"
-        ]
-      }
-    },
-    "query": "SELECT bytecode FROM ( SELECT * FROM storage_logs WHERE storage_logs.hashed_key = $1 AND storage_logs.miniblock_number <= $2 ORDER BY storage_logs.miniblock_number DESC, storage_logs.operation_number DESC LIMIT 1 ) t JOIN factory_deps ON VALUE = factory_deps.bytecode_hash WHERE VALUE != $3"
-  },
-  "ba6e5e3eaf701a778553cabf6b82d06ee8c20a04815e51df648ebc02b6b897c5": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "instance_host",
-          "ordinal": 1,
-          "type_info": "Inet"
-        },
-        {
-          "name": "instance_port",
-          "ordinal": 2,
-          "type_info": "Int4"
-        },
-        {
-          "name": "instance_status",
-          "ordinal": 3,
-          "type_info": "Text"
-        },
-        {
-          "name": "created_at",
-          "ordinal": 4,
-          "type_info": "Timestamp"
-        },
-        {
-          "name": "updated_at",
-          "ordinal": 5,
-          "type_info": "Timestamp"
-        },
-        {
-          "name": "processing_started_at",
-          "ordinal": 6,
-          "type_info": "Timestamp"
-        },
-        {
-          "name": "queue_free_slots",
-          "ordinal": 7,
-          "type_info": "Int4"
-        },
-        {
-          "name": "queue_capacity",
-          "ordinal": 8,
-          "type_info": "Int4"
-        },
-        {
-          "name": "specialized_prover_group_id",
-          "ordinal": 9,
-          "type_info": "Int2"
-        },
-        {
-          "name": "region",
-          "ordinal": 10,
-          "type_info": "Text"
-        },
-        {
-          "name": "zone",
-          "ordinal": 11,
-          "type_info": "Text"
-        },
-        {
-          "name": "num_gpu",
-          "ordinal": 12,
-          "type_info": "Int2"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true,
-        true,
-        true,
-        true,
-        false,
-        false,
-        true
-      ],
-      "parameters": {
-        "Left": [
-          "Interval",
-          "Int2",
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "   UPDATE gpu_prover_queue SET instance_status = 'reserved', updated_at = NOW(), processing_started_at = NOW() WHERE id IN ( SELECT id FROM gpu_prover_queue WHERE specialized_prover_group_id = $2 AND region = $3 AND ZONE = $4 AND ( instance_status = 'available' OR ( instance_status = 'reserved' AND processing_started_at < NOW() - $1::INTERVAL ) ) ORDER BY updated_at ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING gpu_prover_queue.*"
   },
   "ba7568579434313ca1d55c434b1aa33a2e7dbf5e827b379c04290d7115fbab69": {
     "describe": {
@@ -8308,7 +8641,7 @@
     },
     "query": "   INSERT INTO eth_txs ( raw_tx, nonce, tx_type, contract_address, predicted_gas_cost, created_at, updated_at ) VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING *"
   },
-  "bac1a428b85516790e0468c86e6de68914adc2080a0ff22b89927d1e4e3b9e3f": {
+  "bb093e206d4b1b1618e34870b1d68f0324ae94f572e86abbfd2c07117f8fede9": {
     "describe": {
       "columns": [],
       "nullable": [],
@@ -8325,7 +8658,7 @@
         ]
       }
     },
-    "query": "INSERT INTO prover_jobs_fri ( l1_batch_number, circuit_id, circuit_blob_url, aggregation_round, sequence_number, DEPTH, is_node_final_proof, protocol_version, status, created_at, updated_at ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'queued', NOW(), NOW()) ON CONFLICT (l1_batch_number, aggregation_round, circuit_id, DEPTH, sequence_number) DO UPDATE SET updated_at = NOW()"
+    "query": "INSERT INTO prover_jobs_fri ( l1_batch_number, circuit_id, circuit_blob_url, aggregation_round, sequence_number, depth, is_node_final_proof, protocol_version, status, created_at, updated_at ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'queued', NOW(), NOW()) ON CONFLICT (l1_batch_number, aggregation_round, circuit_id, depth, sequence_number) DO UPDATE SET updated_at = NOW()"
   },
   "bb12906b7583f1c449d3d0af5ea098ce9d0da9bf694abd45daa8edd558aa2418": {
     "describe": {
@@ -8353,7 +8686,7 @@
     },
     "query": "UPDATE scheduler_witness_jobs_fri SET status = 'queued' WHERE l1_batch_number = $1 AND status != 'successful' AND status != 'in_progress'"
   },
-  "bd2456ab330909d1812219fbc618cada15516a423f8c064c73e08baa0ccc62e3": {
+  "bd62dcb5107fc5fd6ad02b9d25f490c0cb1918159ce0628d2c65e50b5102a1aa": {
     "describe": {
       "columns": [],
       "nullable": [],
@@ -8361,12 +8694,13 @@
         "Left": [
           "Text",
           "Int4",
-          "Int2",
+          "Int4",
+          "Text",
           "Text"
         ]
       }
     },
-    "query": "INSERT INTO gpu_prover_queue_fri ( instance_host, instance_port, instance_status, specialized_prover_group_id, ZONE, created_at, updated_at ) VALUES (CAST($1::TEXT AS inet), $2, 'available', $3, $4, NOW(), NOW()) ON CONFLICT (instance_host, instance_port, ZONE) DO UPDATE SET instance_status = 'available', specialized_prover_group_id = $3, ZONE = $4, updated_at = NOW()"
+    "query": "UPDATE gpu_prover_queue SET instance_status = 'available', updated_at = NOW(), queue_free_slots = $3 WHERE instance_host = $1::TEXT::inet AND instance_port = $2 AND instance_status = 'full' AND region = $4 AND zone = $5"
   },
   "bdd2ea414e14afbdcf8f688058d60c2ecf778324e200f5f4c532584e36eeeae7": {
     "describe": {
@@ -8547,6 +8881,92 @@
     },
     "query": "UPDATE scheduler_witness_jobs SET final_node_aggregations_blob_url = $2, status = 'waiting_for_proofs', updated_at = NOW() WHERE l1_batch_number = $1 AND status != 'queued'"
   },
+  "c562ca9ab4c6e62b9eb9a32897fb58b87548b13117295ffddb355bba1dde9a98": {
+    "describe": {
+      "columns": [
+        {
+          "name": "number",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "timestamp",
+          "ordinal": 1,
+          "type_info": "Int8"
+        },
+        {
+          "name": "hash",
+          "ordinal": 2,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l1_tx_count",
+          "ordinal": 3,
+          "type_info": "Int4"
+        },
+        {
+          "name": "l2_tx_count",
+          "ordinal": 4,
+          "type_info": "Int4"
+        },
+        {
+          "name": "base_fee_per_gas",
+          "ordinal": 5,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "l1_gas_price",
+          "ordinal": 6,
+          "type_info": "Int8"
+        },
+        {
+          "name": "l2_fair_gas_price",
+          "ordinal": 7,
+          "type_info": "Int8"
+        },
+        {
+          "name": "bootloader_code_hash",
+          "ordinal": 8,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "default_aa_code_hash",
+          "ordinal": 9,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "protocol_version",
+          "ordinal": 10,
+          "type_info": "Int4"
+        },
+        {
+          "name": "virtual_blocks",
+          "ordinal": 11,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "SELECT number, timestamp, hash, l1_tx_count, l2_tx_count, base_fee_per_gas, l1_gas_price, l2_fair_gas_price, bootloader_code_hash, default_aa_code_hash, protocol_version, virtual_blocks FROM miniblocks WHERE number = $1"
+  },
   "c58073b1b5d467bdc8da907f0479eb029c10b4ce161621863f43274065cfe9df": {
     "describe": {
       "columns": [
@@ -8652,71 +9072,7 @@
     },
     "query": "   UPDATE leaf_aggregation_witness_jobs_fri SET status = 'in_progress', attempts = attempts + 1, updated_at = NOW(), processing_started_at = NOW(), picked_by = $2 WHERE id = ( SELECT id FROM leaf_aggregation_witness_jobs_fri WHERE status = 'queued' AND protocol_version = ANY ($1) ORDER BY l1_batch_number ASC, id ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING leaf_aggregation_witness_jobs_fri.*"
   },
-  "c5d001c23f1ec530244faa6856caee666f112ec799d569b4fecee80ff27a227d": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Int8",
-          "Int8"
-        ]
-      }
-    },
-    "query": "UPDATE l1_batches SET predicted_commit_gas_cost = $2, updated_at = NOW() WHERE number = $1"
-  },
-  "c6aadc4ec78e30f5775f7a9f866ad02984b78de3e3d1f34c144a4057ff44ea6a": {
-    "describe": {
-      "columns": [
-        {
-          "name": "count",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "SELECT COUNT(*) FROM eth_txs WHERE has_failed = TRUE"
-  },
-  "c781c14d2087329e3030fdc9412dff65063805a0889d8e223c69a51cb0b3f743": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "status",
-          "ordinal": 1,
-          "type_info": "Text"
-        },
-        {
-          "name": "attempts",
-          "ordinal": 2,
-          "type_info": "Int2"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Interval",
-          "Int2"
-        ]
-      }
-    },
-    "query": "   UPDATE leaf_aggregation_witness_jobs_fri SET status = 'queued', updated_at = NOW(), processing_started_at = NOW() WHERE ( status = 'in_progress' AND processing_started_at <= NOW() - $1::INTERVAL AND attempts < $2 ) OR ( status = 'failed' AND attempts < $2 ) RETURNING id, status, attempts"
-  },
-  "c7f93b071dc6dd84cd4acea6cddfd72099157a97da79f83aaa32d97ed07172c2": {
+  "c59d052f89ddfc3d2c07be84d6d9837adfbe2cefb10d01e09d31aa5e3364e281": {
     "describe": {
       "columns": [
         {
@@ -8805,14 +9161,14 @@
           "type_info": "Int4"
         },
         {
-          "name": "system_logs",
+          "name": "compressed_state_diffs",
           "ordinal": 17,
-          "type_info": "ByteaArray"
+          "type_info": "Bytea"
         },
         {
-          "name": "compressed_state_diffs",
+          "name": "system_logs",
           "ordinal": 18,
-          "type_info": "Bytea"
+          "type_info": "ByteaArray"
         }
       ],
       "nullable": [
@@ -8833,16 +9189,80 @@
         true,
         true,
         true,
-        false,
-        true
+        true,
+        false
       ],
       "parameters": {
         "Left": [
-          "Int4"
+          "Int8"
         ]
       }
     },
-    "query": "SELECT number, l1_tx_count, l2_tx_count, TIMESTAMP, is_finished, fee_account_address, l2_to_l1_logs, l2_to_l1_messages, bloom, priority_ops_onchain_data, used_contract_hashes, base_fee_per_gas, l1_gas_price, l2_fair_gas_price, bootloader_code_hash, default_aa_code_hash, protocol_version, system_logs, compressed_state_diffs FROM l1_batches WHERE eth_commit_tx_id = $1 OR eth_prove_tx_id = $1 OR eth_execute_tx_id = $1"
+    "query": "SELECT number, l1_tx_count, l2_tx_count, timestamp, is_finished, fee_account_address, l2_to_l1_logs, l2_to_l1_messages, bloom, priority_ops_onchain_data, used_contract_hashes, base_fee_per_gas, l1_gas_price, l2_fair_gas_price, bootloader_code_hash, default_aa_code_hash, protocol_version, compressed_state_diffs, system_logs FROM l1_batches WHERE number = $1"
+  },
+  "c5d001c23f1ec530244faa6856caee666f112ec799d569b4fecee80ff27a227d": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      }
+    },
+    "query": "UPDATE l1_batches SET predicted_commit_gas_cost = $2, updated_at = NOW() WHERE number = $1"
+  },
+  "c6aadc4ec78e30f5775f7a9f866ad02984b78de3e3d1f34c144a4057ff44ea6a": {
+    "describe": {
+      "columns": [
+        {
+          "name": "count",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT COUNT(*) FROM eth_txs WHERE has_failed = TRUE"
+  },
+  "c781c14d2087329e3030fdc9412dff65063805a0889d8e223c69a51cb0b3f743": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "status",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "attempts",
+          "ordinal": 2,
+          "type_info": "Int2"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Interval",
+          "Int2"
+        ]
+      }
+    },
+    "query": "   UPDATE leaf_aggregation_witness_jobs_fri SET status = 'queued', updated_at = NOW(), processing_started_at = NOW() WHERE ( status = 'in_progress' AND processing_started_at <= NOW() - $1::INTERVAL AND attempts < $2 ) OR ( status = 'failed' AND attempts < $2 ) RETURNING id, status, attempts"
   },
   "c88a01b01245c70d604ca72d14e5193c99ab4a2cfd9f287405e0dbe62d39c510": {
     "describe": {
@@ -9024,63 +9444,6 @@
     },
     "query": "   UPDATE contract_verification_requests SET status = 'in_progress', attempts = attempts + 1, updated_at = NOW(), processing_started_at = NOW() WHERE id = ( SELECT id FROM contract_verification_requests WHERE status = 'queued' OR ( status = 'in_progress' AND processing_started_at < NOW() - $1::INTERVAL ) ORDER BY created_at LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING id, contract_address, source_code, contract_name, zk_compiler_version, compiler_version, optimization_used, optimizer_mode, constructor_arguments, is_system"
   },
-  "c8c0bd35c660410bedcf6604824685b72da8ab077bb67b594c0759af266f9f51": {
-    "describe": {
-      "columns": [
-        {
-          "name": "timestamp",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "virtual_blocks",
-          "ordinal": 1,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Int8",
-          "Int8"
-        ]
-      }
-    },
-    "query": "  SELECT TIMESTAMP, virtual_blocks FROM miniblocks WHERE number BETWEEN $1 AND $2 ORDER BY number"
-  },
-  "c9b8466416eeba17bc3e9407772a68842da96f983c2a8399f428aeed4589e7c8": {
-    "describe": {
-      "columns": [
-        {
-          "name": "l1_batch_number",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "circuit_id",
-          "ordinal": 1,
-          "type_info": "Int2"
-        },
-        {
-          "name": "depth",
-          "ordinal": 2,
-          "type_info": "Int4"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "   UPDATE node_aggregation_witness_jobs_fri SET status = 'queued' WHERE (l1_batch_number, circuit_id, DEPTH) IN ( SELECT prover_jobs_fri.l1_batch_number, prover_jobs_fri.circuit_id, prover_jobs_fri.depth FROM prover_jobs_fri JOIN node_aggregation_witness_jobs_fri nawj ON prover_jobs_fri.l1_batch_number = nawj.l1_batch_number AND prover_jobs_fri.circuit_id = nawj.circuit_id AND prover_jobs_fri.depth = nawj.depth WHERE nawj.status = 'waiting_for_proofs' AND prover_jobs_fri.status = 'successful' AND prover_jobs_fri.aggregation_round = 1 AND prover_jobs_fri.depth = 0 GROUP BY prover_jobs_fri.l1_batch_number, prover_jobs_fri.circuit_id, prover_jobs_fri.depth, nawj.number_of_dependent_jobs HAVING COUNT(*) = nawj.number_of_dependent_jobs ) RETURNING l1_batch_number, circuit_id, DEPTH;"
-  },
   "cb1be9a367a71770ea474aea1a4e9943712da597cd7e15e999137e183bf16240": {
     "describe": {
       "columns": [
@@ -9098,254 +9461,6 @@
       }
     },
     "query": "   UPDATE node_aggregation_witness_jobs SET status = 'queued' WHERE l1_batch_number IN ( SELECT prover_jobs.l1_batch_number FROM prover_jobs JOIN node_aggregation_witness_jobs nawj ON prover_jobs.l1_batch_number = nawj.l1_batch_number WHERE nawj.status = 'waiting_for_proofs' AND prover_jobs.status = 'successful' AND prover_jobs.aggregation_round = 1 GROUP BY prover_jobs.l1_batch_number, nawj.number_of_leaf_circuits HAVING COUNT(*) = nawj.number_of_leaf_circuits ) RETURNING l1_batch_number;"
-  },
-  "cb812d71a8c7f0559cba80b0c48156f7b2fea4cff08a3e3098201667b91daab0": {
-    "describe": {
-      "columns": [
-        {
-          "name": "number",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "timestamp",
-          "ordinal": 1,
-          "type_info": "Int8"
-        },
-        {
-          "name": "is_finished",
-          "ordinal": 2,
-          "type_info": "Bool"
-        },
-        {
-          "name": "l1_tx_count",
-          "ordinal": 3,
-          "type_info": "Int4"
-        },
-        {
-          "name": "l2_tx_count",
-          "ordinal": 4,
-          "type_info": "Int4"
-        },
-        {
-          "name": "fee_account_address",
-          "ordinal": 5,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "bloom",
-          "ordinal": 6,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "priority_ops_onchain_data",
-          "ordinal": 7,
-          "type_info": "ByteaArray"
-        },
-        {
-          "name": "hash",
-          "ordinal": 8,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "parent_hash",
-          "ordinal": 9,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "commitment",
-          "ordinal": 10,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "compressed_write_logs",
-          "ordinal": 11,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "compressed_contracts",
-          "ordinal": 12,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "eth_prove_tx_id",
-          "ordinal": 13,
-          "type_info": "Int4"
-        },
-        {
-          "name": "eth_commit_tx_id",
-          "ordinal": 14,
-          "type_info": "Int4"
-        },
-        {
-          "name": "eth_execute_tx_id",
-          "ordinal": 15,
-          "type_info": "Int4"
-        },
-        {
-          "name": "merkle_root_hash",
-          "ordinal": 16,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l2_to_l1_logs",
-          "ordinal": 17,
-          "type_info": "ByteaArray"
-        },
-        {
-          "name": "l2_to_l1_messages",
-          "ordinal": 18,
-          "type_info": "ByteaArray"
-        },
-        {
-          "name": "used_contract_hashes",
-          "ordinal": 19,
-          "type_info": "Jsonb"
-        },
-        {
-          "name": "compressed_initial_writes",
-          "ordinal": 20,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "compressed_repeated_writes",
-          "ordinal": 21,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l2_l1_compressed_messages",
-          "ordinal": 22,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l2_l1_merkle_root",
-          "ordinal": 23,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l1_gas_price",
-          "ordinal": 24,
-          "type_info": "Int8"
-        },
-        {
-          "name": "l2_fair_gas_price",
-          "ordinal": 25,
-          "type_info": "Int8"
-        },
-        {
-          "name": "rollup_last_leaf_index",
-          "ordinal": 26,
-          "type_info": "Int8"
-        },
-        {
-          "name": "zkporter_is_available",
-          "ordinal": 27,
-          "type_info": "Bool"
-        },
-        {
-          "name": "bootloader_code_hash",
-          "ordinal": 28,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "default_aa_code_hash",
-          "ordinal": 29,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "base_fee_per_gas",
-          "ordinal": 30,
-          "type_info": "Numeric"
-        },
-        {
-          "name": "aux_data_hash",
-          "ordinal": 31,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "pass_through_data_hash",
-          "ordinal": 32,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "meta_parameters_hash",
-          "ordinal": 33,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "protocol_version",
-          "ordinal": 34,
-          "type_info": "Int4"
-        },
-        {
-          "name": "system_logs",
-          "ordinal": 35,
-          "type_info": "ByteaArray"
-        },
-        {
-          "name": "compressed_state_diffs",
-          "ordinal": 36,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "events_queue_commitment",
-          "ordinal": 37,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "bootloader_initial_content_commitment",
-          "ordinal": 38,
-          "type_info": "Bytea"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        false,
-        false,
-        false,
-        true,
-        true,
-        true,
-        true,
-        false,
-        false,
-        true,
-        true,
-        true,
-        true,
-        false,
-        true,
-        true,
-        true,
-        true,
-        false,
-        true,
-        true,
-        true
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      }
-    },
-    "query": "   SELECT number, TIMESTAMP, is_finished, l1_tx_count, l2_tx_count, fee_account_address, bloom, priority_ops_onchain_data, hash, parent_hash, commitment, compressed_write_logs, compressed_contracts, eth_prove_tx_id, eth_commit_tx_id, eth_execute_tx_id, merkle_root_hash, l2_to_l1_logs, l2_to_l1_messages, used_contract_hashes, compressed_initial_writes, compressed_repeated_writes, l2_l1_compressed_messages, l2_l1_merkle_root, l1_gas_price, l2_fair_gas_price, rollup_last_leaf_index, zkporter_is_available, bootloader_code_hash, default_aa_code_hash, base_fee_per_gas, aux_data_hash, pass_through_data_hash, meta_parameters_hash, protocol_version, system_logs, compressed_state_diffs, events_queue_commitment, bootloader_initial_content_commitment FROM l1_batches LEFT JOIN commitments ON commitments.l1_batch_number = l1_batches.number WHERE number = $1"
   },
   "cbcfa3dbb3f3c2555e807ef15978258b7d79553d399bc540c22a467cfb521397": {
     "describe": {
@@ -9367,6 +9482,40 @@
       }
     },
     "query": "  SELECT hash FROM miniblocks WHERE number BETWEEN $1 AND $2 ORDER BY number"
+  },
+  "cd014dd186a01d914f4881559c4d4684d5180057567739a1e7aa903524f140f7": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int4",
+          "Int4",
+          "Int8",
+          "Bool",
+          "Bytea",
+          "ByteaArray",
+          "ByteaArray",
+          "Bytea",
+          "ByteaArray",
+          "Int8",
+          "Int8",
+          "Int8",
+          "Jsonb",
+          "Jsonb",
+          "Numeric",
+          "Int8",
+          "Int8",
+          "Bytea",
+          "Bytea",
+          "Int4",
+          "ByteaArray",
+          "Int8Array"
+        ]
+      }
+    },
+    "query": "INSERT INTO l1_batches ( number, l1_tx_count, l2_tx_count, timestamp, is_finished, fee_account_address, l2_to_l1_logs, l2_to_l1_messages, bloom, priority_ops_onchain_data, predicted_commit_gas_cost, predicted_prove_gas_cost, predicted_execute_gas_cost, initial_bootloader_heap_content, used_contract_hashes, base_fee_per_gas, l1_gas_price, l2_fair_gas_price, bootloader_code_hash, default_aa_code_hash, protocol_version, system_logs, storage_refunds, created_at, updated_at ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, NOW(), NOW() )"
   },
   "cd2f668e3febead6b8c5c5dacaf95f0840b9c40f6c8585df93b0541f9b5b1548": {
     "describe": {
@@ -9589,6 +9738,24 @@
     },
     "query": "   UPDATE basic_witness_input_producer_jobs SET status = $1, attempts = attempts + 1, updated_at = NOW(), processing_started_at = NOW() WHERE l1_batch_number = ( SELECT l1_batch_number FROM basic_witness_input_producer_jobs WHERE status = $2 OR ( status = $1 AND processing_started_at < NOW() - $4::INTERVAL ) OR ( status = $3 AND attempts < $5 ) ORDER BY l1_batch_number ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING basic_witness_input_producer_jobs.l1_batch_number"
   },
+  "d215d106eac74b0bafb9cb29a14fbcda50327fd198727a1af4ee514893de733c": {
+    "describe": {
+      "columns": [
+        {
+          "name": "timestamp",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "  SELECT timestamp FROM l1_batches WHERE eth_execute_tx_id IS NULL AND number > 0 ORDER BY number LIMIT 1"
+  },
   "d322ce598209429b4473aac8a24b851e449ef71ac4ca9b6bd34579e8d42f3a84": {
     "describe": {
       "columns": [],
@@ -9614,76 +9781,6 @@
       }
     },
     "query": "UPDATE transactions SET error = $1, updated_at = NOW() WHERE hash = $2"
-  },
-  "d4adb8f4f5fdf3295ba0db9caf73ff33d48ed7265337daead5c9603eb0891014": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "instance_host",
-          "ordinal": 1,
-          "type_info": "Inet"
-        },
-        {
-          "name": "instance_port",
-          "ordinal": 2,
-          "type_info": "Int4"
-        },
-        {
-          "name": "instance_status",
-          "ordinal": 3,
-          "type_info": "Text"
-        },
-        {
-          "name": "specialized_prover_group_id",
-          "ordinal": 4,
-          "type_info": "Int2"
-        },
-        {
-          "name": "zone",
-          "ordinal": 5,
-          "type_info": "Text"
-        },
-        {
-          "name": "created_at",
-          "ordinal": 6,
-          "type_info": "Timestamp"
-        },
-        {
-          "name": "updated_at",
-          "ordinal": 7,
-          "type_info": "Timestamp"
-        },
-        {
-          "name": "processing_started_at",
-          "ordinal": 8,
-          "type_info": "Timestamp"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        true,
-        false,
-        false,
-        true
-      ],
-      "parameters": {
-        "Left": [
-          "Interval",
-          "Int2",
-          "Text"
-        ]
-      }
-    },
-    "query": "   UPDATE gpu_prover_queue_fri SET instance_status = 'reserved', updated_at = NOW(), processing_started_at = NOW() WHERE id IN ( SELECT id FROM gpu_prover_queue_fri WHERE specialized_prover_group_id = $2 AND ZONE = $3 AND ( instance_status = 'available' OR ( instance_status = 'reserved' AND processing_started_at < NOW() - $1::INTERVAL ) ) ORDER BY updated_at ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING gpu_prover_queue_fri.*"
   },
   "d4de593fca3fb8e60c78f431860617a2a659d99aad838a7513b0121835b4efe2": {
     "describe": {
@@ -9711,6 +9808,36 @@
       }
     },
     "query": "INSERT INTO witness_inputs ( l1_batch_number, merkle_tree_paths, merkel_tree_paths_blob_url, status, protocol_version, created_at, updated_at ) VALUES ($1, $2, $3, 'waiting_for_artifacts', $4, NOW(), NOW()) ON CONFLICT (l1_batch_number) DO NOTHING"
+  },
+  "d5ac1279510c77439d52d1c7cb75ba4a4f1e5475ed82ed5d21cb14c764e13be3": {
+    "describe": {
+      "columns": [
+        {
+          "name": "l1_batch_number",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "circuit_id",
+          "ordinal": 1,
+          "type_info": "Int2"
+        },
+        {
+          "name": "depth",
+          "ordinal": 2,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "   UPDATE node_aggregation_witness_jobs_fri SET status = 'queued' WHERE (l1_batch_number, circuit_id, depth) IN ( SELECT prover_jobs_fri.l1_batch_number, prover_jobs_fri.circuit_id, prover_jobs_fri.depth FROM prover_jobs_fri JOIN node_aggregation_witness_jobs_fri nawj ON prover_jobs_fri.l1_batch_number = nawj.l1_batch_number AND prover_jobs_fri.circuit_id = nawj.circuit_id AND prover_jobs_fri.depth = nawj.depth WHERE nawj.status = 'waiting_for_proofs' AND prover_jobs_fri.status = 'successful' AND prover_jobs_fri.aggregation_round = 2 GROUP BY prover_jobs_fri.l1_batch_number, prover_jobs_fri.circuit_id, prover_jobs_fri.depth, nawj.number_of_dependent_jobs HAVING COUNT(*) = nawj.number_of_dependent_jobs ) RETURNING l1_batch_number, circuit_id, depth;"
   },
   "d5dd4bb3940d1d3a95e836329693e8a77137387e46d31e2cdbaf3187a16dd7be": {
     "describe": {
@@ -9772,38 +9899,6 @@
       }
     },
     "query": "  SELECT base_fee_per_gas FROM miniblocks WHERE number <= $1 ORDER BY number DESC LIMIT $2"
-  },
-  "d75841a9b9e16f64bb746d724c140df3b672f36e08a1fb6fb90ca30e05501b4e": {
-    "describe": {
-      "columns": [
-        {
-          "name": "address",
-          "ordinal": 0,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "key",
-          "ordinal": 1,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "value",
-          "ordinal": 2,
-          "type_info": "Bytea"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      }
-    },
-    "query": "  SELECT address, KEY, VALUE FROM storage_logs WHERE miniblock_number BETWEEN ( SELECT MIN(number) FROM miniblocks WHERE l1_batch_number = $1 ) AND ( SELECT MAX(number) FROM miniblocks WHERE l1_batch_number = $1 ) ORDER BY miniblock_number, operation_number"
   },
   "d77b94165e557e1b82640afb01ad9a127eba7e5043cdef26276f34eee0d6b684": {
     "describe": {
@@ -9868,24 +9963,6 @@
       }
     },
     "query": "   UPDATE proof_compression_jobs_fri SET status = $1, attempts = attempts + 1, updated_at = NOW(), processing_started_at = NOW(), picked_by = $3 WHERE l1_batch_number = ( SELECT l1_batch_number FROM proof_compression_jobs_fri WHERE status = $2 ORDER BY l1_batch_number ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING proof_compression_jobs_fri.l1_batch_number"
-  },
-  "d83e12f831108e9526218d8f73bb63c42e8b2f064311ccc6ad91b13594bf9c80": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Int4",
-          "Int8",
-          "Bytea",
-          "Bytea",
-          "Bytea",
-          "Bytea",
-          "Bytea"
-        ]
-      }
-    },
-    "query": "INSERT INTO prover_protocol_versions ( id, TIMESTAMP, recursion_scheduler_level_vk_hash, recursion_node_level_vk_hash, recursion_leaf_level_vk_hash, recursion_circuits_set_vks_hash, verifier_address, created_at ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())"
   },
   "d8515595d34dca53e50bbd4ed396f6208e33f596195a5ed02fba9e8364ceb33c": {
     "describe": {
@@ -10040,21 +10117,6 @@
       }
     },
     "query": "   UPDATE prover_jobs SET status = 'in_progress', attempts = attempts + 1, updated_at = NOW(), processing_started_at = NOW() WHERE id = ( SELECT id FROM prover_jobs WHERE status = 'queued' AND protocol_version = ANY ($1) ORDER BY aggregation_round DESC, l1_batch_number ASC, id ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING prover_jobs.*"
-  },
-  "d9bd58c3319a24b23e8aa9fc7463063959f1c9e00ef3726d54e2f7dd72dcb8b7": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Text",
-          "Int4",
-          "Text"
-        ]
-      }
-    },
-    "query": "UPDATE gpu_prover_queue_fri SET instance_status = $1, updated_at = NOW() WHERE instance_host = $2::TEXT::inet AND instance_port = $3 AND ZONE = $4"
   },
   "da1edeb5e90157b6b04a8f76efd792ab4cd948594a0b03ee799f951c6ed87cc8": {
     "describe": {
@@ -10542,92 +10604,6 @@
     },
     "query": "  SELECT number, hash FROM miniblocks WHERE number > $1 ORDER BY number ASC LIMIT $2"
   },
-  "ddffbb1e2e34fa7bfeb453b0dcb596fb5163f70d076fa1c0a364050bee784d5b": {
-    "describe": {
-      "columns": [
-        {
-          "name": "number",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "timestamp",
-          "ordinal": 1,
-          "type_info": "Int8"
-        },
-        {
-          "name": "hash",
-          "ordinal": 2,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l1_tx_count",
-          "ordinal": 3,
-          "type_info": "Int4"
-        },
-        {
-          "name": "l2_tx_count",
-          "ordinal": 4,
-          "type_info": "Int4"
-        },
-        {
-          "name": "base_fee_per_gas",
-          "ordinal": 5,
-          "type_info": "Numeric"
-        },
-        {
-          "name": "l1_gas_price",
-          "ordinal": 6,
-          "type_info": "Int8"
-        },
-        {
-          "name": "l2_fair_gas_price",
-          "ordinal": 7,
-          "type_info": "Int8"
-        },
-        {
-          "name": "bootloader_code_hash",
-          "ordinal": 8,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "default_aa_code_hash",
-          "ordinal": 9,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "protocol_version",
-          "ordinal": 10,
-          "type_info": "Int4"
-        },
-        {
-          "name": "virtual_blocks",
-          "ordinal": 11,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true,
-        true,
-        true,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      }
-    },
-    "query": "SELECT number, TIMESTAMP, hash, l1_tx_count, l2_tx_count, base_fee_per_gas, l1_gas_price, l2_fair_gas_price, bootloader_code_hash, default_aa_code_hash, protocol_version, virtual_blocks FROM miniblocks WHERE number = $1"
-  },
   "de960625b0fa0b766aacab74473fcd0332a3f7dc356648452a6a63189a8b7cc3": {
     "describe": {
       "columns": [
@@ -10648,38 +10624,6 @@
     },
     "query": "SELECT protocol_version FROM witness_inputs_fri WHERE l1_batch_number = $1"
   },
-  "deee4e2fe20ee81e69d26c76a82574071c95693fe44c52b5c96b2cddf2e952e9": {
-    "describe": {
-      "columns": [
-        {
-          "name": "bootloader_code_hash",
-          "ordinal": 0,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "default_account_code_hash",
-          "ordinal": 1,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "id",
-          "ordinal": 2,
-          "type_info": "Int4"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      }
-    },
-    "query": "  SELECT bootloader_code_hash, default_account_code_hash, id FROM protocol_versions WHERE TIMESTAMP <= $1 ORDER BY id DESC LIMIT 1"
-  },
   "df007c42a2b6e556a98b018190aa3c93da97da31a1bf66014af72584b3fbf48e": {
     "describe": {
       "columns": [],
@@ -10693,6 +10637,101 @@
       }
     },
     "query": "UPDATE proof_compression_jobs_fri SET status = $1, error = $2, updated_at = NOW() WHERE l1_batch_number = $3"
+  },
+  "df79c6176002a1130e6c8980a75451879804b3173918268bfd0971ef09231ec6": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "instance_host",
+          "ordinal": 1,
+          "type_info": "Inet"
+        },
+        {
+          "name": "instance_port",
+          "ordinal": 2,
+          "type_info": "Int4"
+        },
+        {
+          "name": "instance_status",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 4,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 5,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "processing_started_at",
+          "ordinal": 6,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "queue_free_slots",
+          "ordinal": 7,
+          "type_info": "Int4"
+        },
+        {
+          "name": "queue_capacity",
+          "ordinal": 8,
+          "type_info": "Int4"
+        },
+        {
+          "name": "specialized_prover_group_id",
+          "ordinal": 9,
+          "type_info": "Int2"
+        },
+        {
+          "name": "region",
+          "ordinal": 10,
+          "type_info": "Text"
+        },
+        {
+          "name": "zone",
+          "ordinal": 11,
+          "type_info": "Text"
+        },
+        {
+          "name": "num_gpu",
+          "ordinal": 12,
+          "type_info": "Int2"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Interval",
+          "Int2",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "   UPDATE gpu_prover_queue SET instance_status = 'reserved', updated_at = NOW(), processing_started_at = NOW() WHERE id IN ( SELECT id FROM gpu_prover_queue WHERE specialized_prover_group_id = $2 AND region = $3 AND zone = $4 AND ( instance_status = 'available' OR ( instance_status = 'reserved' AND processing_started_at < NOW() - $1::INTERVAL ) ) ORDER BY updated_at ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING gpu_prover_queue.*"
   },
   "e19b09676dde0f8c60149082003b7759c7216705bba3b6be40467725df66ea44": {
     "describe": {
@@ -10908,7 +10947,7 @@
     },
     "query": "DELETE FROM tokens WHERE l2_address IN ( SELECT SUBSTRING(KEY, 12, 20) FROM storage_logs WHERE storage_logs.address = $1 AND miniblock_number > $2 AND NOT EXISTS ( SELECT 1 FROM storage_logs AS s WHERE s.hashed_key = storage_logs.hashed_key AND (s.miniblock_number, s.operation_number) >= (storage_logs.miniblock_number, storage_logs.operation_number) AND s.value = $3 ) )"
   },
-  "e54b9085ef125a94be52e3557bfd25d4ed5473121512de3ff540ce76d44104e1": {
+  "e55ecb53aa7ba6301c8e90067d4bbf943850962aefa2437f1ed5ee3cc9230f80": {
     "describe": {
       "columns": [],
       "nullable": [],
@@ -10924,7 +10963,7 @@
         ]
       }
     },
-    "query": "INSERT INTO gpu_prover_queue ( instance_host, instance_port, queue_capacity, queue_free_slots, instance_status, specialized_prover_group_id, region, ZONE, num_gpu, created_at, updated_at ) VALUES (CAST($1::TEXT AS inet), $2, $3, $3, 'available', $4, $5, $6, $7, NOW(), NOW()) ON CONFLICT (instance_host, instance_port, region, ZONE) DO UPDATE SET instance_status = 'available', queue_capacity = $3, queue_free_slots = $3, specialized_prover_group_id = $4, region = $5, ZONE = $6, num_gpu = $7, updated_at = NOW()"
+    "query": "INSERT INTO gpu_prover_queue ( instance_host, instance_port, queue_capacity, queue_free_slots, instance_status, specialized_prover_group_id, region, zone, num_gpu, created_at, updated_at ) VALUES (CAST($1::TEXT AS inet), $2, $3, $3, 'available', $4, $5, $6, $7, NOW(), NOW()) ON CONFLICT (instance_host, instance_port, region, zone) DO UPDATE SET instance_status = 'available', queue_capacity = $3, queue_free_slots = $3, specialized_prover_group_id = $4, region = $5, zone = $6, num_gpu = $7, updated_at = NOW()"
   },
   "e568e39adfc491d31ad6c31069396fb8e55ee8d0005b6ac136eb08231e1c6ebc": {
     "describe": {
@@ -11202,24 +11241,6 @@
     },
     "query": "   UPDATE prover_jobs_fri SET status = 'queued', updated_at = NOW(), processing_started_at = NOW() WHERE id IN ( SELECT id FROM prover_jobs_fri WHERE ( status = 'in_progress' AND processing_started_at <= NOW() - $1::INTERVAL AND attempts < $2 ) OR ( status = 'in_gpu_proof' AND processing_started_at <= NOW() - $1::INTERVAL AND attempts < $2 ) OR ( status = 'failed' AND attempts < $2 ) FOR UPDATE SKIP LOCKED ) RETURNING id, status, attempts"
   },
-  "e78c296d274186f5017a3ed93c1158c54e8b2e4a79854a6c12a24bc18b52c312": {
-    "describe": {
-      "columns": [
-        {
-          "name": "timestamp",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "  SELECT TIMESTAMP FROM l1_batches WHERE eth_prove_tx_id IS NULL AND number > 0 ORDER BY number LIMIT 1"
-  },
   "e793a57147bbf31334e9471fa2fd82cc138124c2c34df6d10997556f41ae6bc0": {
     "describe": {
       "columns": [],
@@ -11234,41 +11255,19 @@
     },
     "query": "UPDATE eth_txs SET gas_used = $1, confirmed_eth_tx_history_id = $2 WHERE id = $3"
   },
-  "e97c5fe11d90ced84ed62f87a4a72474d1f92035f2439cf606d3128278086aef": {
+  "eb70e8adf5d4c3af26da7c430ca3d31769e70af9cd037490d7a49642539fe3fe": {
     "describe": {
       "columns": [],
       "nullable": [],
       "parameters": {
         "Left": [
-          "ByteaArray",
-          "ByteaArray",
-          "ByteaArray",
-          "ByteaArray",
-          "ByteaArray"
+          "Text",
+          "Int4",
+          "Text"
         ]
       }
     },
-    "query": "INSERT INTO STORAGE (hashed_key, address, KEY, VALUE, tx_hash, created_at, updated_at) SELECT u.hashed_key, u.address, u.key, u.value, u.tx_hash, NOW(), NOW() FROM UNNEST($1::bytea[], $2::bytea[], $3::bytea[], $4::bytea[], $5::bytea[]) AS u (hashed_key, address, KEY, VALUE, tx_hash) ON CONFLICT (hashed_key) DO UPDATE SET tx_hash = excluded.tx_hash, VALUE = excluded.value, updated_at = NOW()"
-  },
-  "eb713f457aad8ca3e4507b5d33fbfaeda8c1a04d66d446b895368025ffaa281e": {
-    "describe": {
-      "columns": [
-        {
-          "name": "value",
-          "ordinal": 0,
-          "type_info": "Bytea"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Bytea"
-        ]
-      }
-    },
-    "query": "SELECT VALUE FROM STORAGE WHERE hashed_key = $1"
+    "query": "UPDATE gpu_prover_queue_fri SET instance_status = 'available', updated_at = NOW() WHERE instance_host = $1::TEXT::inet AND instance_port = $2 AND instance_status = 'full' AND zone = $3"
   },
   "ed2fc9dc0dc937acde16f2565105eeedad8adb6f3ff793f56bc2651fa7cdd405": {
     "describe": {
@@ -11630,30 +11629,6 @@
     },
     "query": "SELECT hash FROM l1_batches WHERE number = $1"
   },
-  "f19ab89bd2a52f1613ac6c0261388bc514ba1dd56510d82bdb59880eef40f111": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Int8",
-          "Int8",
-          "Bytea",
-          "Int4",
-          "Int4",
-          "Numeric",
-          "Int8",
-          "Int8",
-          "Int8",
-          "Bytea",
-          "Bytea",
-          "Int4",
-          "Int8"
-        ]
-      }
-    },
-    "query": "INSERT INTO miniblocks ( number, TIMESTAMP, hash, l1_tx_count, l2_tx_count, base_fee_per_gas, l1_gas_price, l2_fair_gas_price, gas_per_pubdata_limit, bootloader_code_hash, default_aa_code_hash, protocol_version, virtual_blocks, created_at, updated_at ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())"
-  },
   "f47e76507b692d68b05553a6f1b735b7f196dbc81656c456f6167a53a5772c7e": {
     "describe": {
       "columns": [
@@ -11721,24 +11696,6 @@
     },
     "query": "INSERT INTO scheduler_witness_jobs ( l1_batch_number, scheduler_witness, scheduler_witness_blob_url, protocol_version, status, created_at, updated_at ) VALUES ($1, $2, $3, $4, 'waiting_for_artifacts', NOW(), NOW())"
   },
-  "f75ed5a7a6119182ee543f9e41d1c0fc3d8d7b4d703ce4f7023cbffd799531ff": {
-    "describe": {
-      "columns": [
-        {
-          "name": "timestamp",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "  SELECT TIMESTAMP FROM l1_batches WHERE eth_execute_tx_id IS NULL AND number > 0 ORDER BY number LIMIT 1"
-  },
   "f7c966892a6ba3ae3f091330d80ea9ae0a24d3b8c9a24eac21dceb0e24ea55c5": {
     "describe": {
       "columns": [
@@ -11756,98 +11713,6 @@
       }
     },
     "query": "SELECT MAX(priority_op_id) AS \"op_id\" FROM transactions WHERE is_priority = TRUE AND miniblock_number IS NOT NULL"
-  },
-  "f8dc6c672385107c6619ff41ba1246b2e368504912b58918cebeb71e9d842c45": {
-    "describe": {
-      "columns": [
-        {
-          "name": "block_hash?",
-          "ordinal": 0,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "address!",
-          "ordinal": 1,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "topic1!",
-          "ordinal": 2,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "topic2!",
-          "ordinal": 3,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "topic3!",
-          "ordinal": 4,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "topic4!",
-          "ordinal": 5,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "value!",
-          "ordinal": 6,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "miniblock_number!",
-          "ordinal": 7,
-          "type_info": "Int8"
-        },
-        {
-          "name": "l1_batch_number?",
-          "ordinal": 8,
-          "type_info": "Int8"
-        },
-        {
-          "name": "tx_hash!",
-          "ordinal": 9,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "tx_index_in_block!",
-          "ordinal": 10,
-          "type_info": "Int4"
-        },
-        {
-          "name": "event_index_in_block!",
-          "ordinal": 11,
-          "type_info": "Int4"
-        },
-        {
-          "name": "event_index_in_tx!",
-          "ordinal": 12,
-          "type_info": "Int4"
-        }
-      ],
-      "nullable": [
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      }
-    },
-    "query": "    WITH events_select AS ( SELECT address, topic1, topic2, topic3, topic4, VALUE, miniblock_number, tx_hash, tx_index_in_block, event_index_in_block, event_index_in_tx FROM events WHERE miniblock_number > $1 ORDER BY miniblock_number ASC, event_index_in_block ASC ) SELECT miniblocks.hash AS \"block_hash?\", address AS \"address!\", topic1 AS \"topic1!\", topic2 AS \"topic2!\", topic3 AS \"topic3!\", topic4 AS \"topic4!\", VALUE AS \"value!\", miniblock_number AS \"miniblock_number!\", miniblocks.l1_batch_number AS \"l1_batch_number?\", tx_hash AS \"tx_hash!\", tx_index_in_block AS \"tx_index_in_block!\", event_index_in_block AS \"event_index_in_block!\", event_index_in_tx AS \"event_index_in_tx!\" FROM events_select INNER JOIN miniblocks ON events_select.miniblock_number = miniblocks.number ORDER BY miniblock_number ASC, event_index_in_block ASC"
   },
   "fa006dda8f56abb70afc5ba8b6da631747d17ebd03a37ddb72914c4ed2aeb2f5": {
     "describe": {
@@ -11868,6 +11733,256 @@
       }
     },
     "query": "SELECT trace FROM transaction_traces WHERE tx_hash = $1"
+  },
+  "fa0d4a658f74db66b5bf18b272af76e06b8d3cb6329685a3a2ea2cf4b9d3a97c": {
+    "describe": {
+      "columns": [
+        {
+          "name": "number",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "timestamp",
+          "ordinal": 1,
+          "type_info": "Int8"
+        },
+        {
+          "name": "is_finished",
+          "ordinal": 2,
+          "type_info": "Bool"
+        },
+        {
+          "name": "l1_tx_count",
+          "ordinal": 3,
+          "type_info": "Int4"
+        },
+        {
+          "name": "l2_tx_count",
+          "ordinal": 4,
+          "type_info": "Int4"
+        },
+        {
+          "name": "fee_account_address",
+          "ordinal": 5,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "bloom",
+          "ordinal": 6,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "priority_ops_onchain_data",
+          "ordinal": 7,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "hash",
+          "ordinal": 8,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "parent_hash",
+          "ordinal": 9,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "commitment",
+          "ordinal": 10,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "compressed_write_logs",
+          "ordinal": 11,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "compressed_contracts",
+          "ordinal": 12,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "eth_prove_tx_id",
+          "ordinal": 13,
+          "type_info": "Int4"
+        },
+        {
+          "name": "eth_commit_tx_id",
+          "ordinal": 14,
+          "type_info": "Int4"
+        },
+        {
+          "name": "eth_execute_tx_id",
+          "ordinal": 15,
+          "type_info": "Int4"
+        },
+        {
+          "name": "merkle_root_hash",
+          "ordinal": 16,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l2_to_l1_logs",
+          "ordinal": 17,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "l2_to_l1_messages",
+          "ordinal": 18,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "used_contract_hashes",
+          "ordinal": 19,
+          "type_info": "Jsonb"
+        },
+        {
+          "name": "compressed_initial_writes",
+          "ordinal": 20,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "compressed_repeated_writes",
+          "ordinal": 21,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l2_l1_compressed_messages",
+          "ordinal": 22,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l2_l1_merkle_root",
+          "ordinal": 23,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l1_gas_price",
+          "ordinal": 24,
+          "type_info": "Int8"
+        },
+        {
+          "name": "l2_fair_gas_price",
+          "ordinal": 25,
+          "type_info": "Int8"
+        },
+        {
+          "name": "rollup_last_leaf_index",
+          "ordinal": 26,
+          "type_info": "Int8"
+        },
+        {
+          "name": "zkporter_is_available",
+          "ordinal": 27,
+          "type_info": "Bool"
+        },
+        {
+          "name": "bootloader_code_hash",
+          "ordinal": 28,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "default_aa_code_hash",
+          "ordinal": 29,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "base_fee_per_gas",
+          "ordinal": 30,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "aux_data_hash",
+          "ordinal": 31,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "pass_through_data_hash",
+          "ordinal": 32,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "meta_parameters_hash",
+          "ordinal": 33,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "protocol_version",
+          "ordinal": 34,
+          "type_info": "Int4"
+        },
+        {
+          "name": "compressed_state_diffs",
+          "ordinal": 35,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "system_logs",
+          "ordinal": 36,
+          "type_info": "ByteaArray"
+        },
+        {
+          "name": "events_queue_commitment",
+          "ordinal": 37,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "bootloader_initial_content_commitment",
+          "ordinal": 38,
+          "type_info": "Bytea"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        false,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        true,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Int8"
+        ]
+      }
+    },
+    "query": "   SELECT number, timestamp, is_finished, l1_tx_count, l2_tx_count, fee_account_address, bloom, priority_ops_onchain_data, hash, parent_hash, commitment, compressed_write_logs, compressed_contracts, eth_prove_tx_id, eth_commit_tx_id, eth_execute_tx_id, merkle_root_hash, l2_to_l1_logs, l2_to_l1_messages, used_contract_hashes, compressed_initial_writes, compressed_repeated_writes, l2_l1_compressed_messages, l2_l1_merkle_root, l1_gas_price, l2_fair_gas_price, rollup_last_leaf_index, zkporter_is_available, bootloader_code_hash, default_aa_code_hash, base_fee_per_gas, aux_data_hash, pass_through_data_hash, meta_parameters_hash, protocol_version, compressed_state_diffs, system_logs, events_queue_commitment, bootloader_initial_content_commitment FROM l1_batches LEFT JOIN commitments ON commitments.l1_batch_number = l1_batches.number WHERE number BETWEEN $1 AND $2 ORDER BY number LIMIT $3"
   },
   "fa2b2e8b5605d8dc7a0e1f73f024f43763dd4bfe80ca63ed6813926e06227dcb": {
     "describe": {
@@ -12000,98 +12115,6 @@
       }
     },
     "query": "SELECT * FROM eth_txs WHERE id = $1"
-  },
-  "fadfd2277138eb911c62364998405eb8d39d3c535dccb5dc086a73e0f6331545": {
-    "describe": {
-      "columns": [
-        {
-          "name": "address",
-          "ordinal": 0,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "topic1",
-          "ordinal": 1,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "topic2",
-          "ordinal": 2,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "topic3",
-          "ordinal": 3,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "topic4",
-          "ordinal": 4,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "value",
-          "ordinal": 5,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "block_hash",
-          "ordinal": 6,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l1_batch_number?",
-          "ordinal": 7,
-          "type_info": "Int8"
-        },
-        {
-          "name": "miniblock_number",
-          "ordinal": 8,
-          "type_info": "Int8"
-        },
-        {
-          "name": "tx_hash",
-          "ordinal": 9,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "tx_index_in_block",
-          "ordinal": 10,
-          "type_info": "Int4"
-        },
-        {
-          "name": "event_index_in_block",
-          "ordinal": 11,
-          "type_info": "Int4"
-        },
-        {
-          "name": "event_index_in_tx",
-          "ordinal": 12,
-          "type_info": "Int4"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        null,
-        null,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Bytea"
-        ]
-      }
-    },
-    "query": "  SELECT address, topic1, topic2, topic3, topic4, VALUE, NULL::bytea AS \"block_hash\", NULL::BIGINT AS \"l1_batch_number?\", miniblock_number, tx_hash, tx_index_in_block, event_index_in_block, event_index_in_tx FROM events WHERE tx_hash = $1 ORDER BY miniblock_number ASC, event_index_in_block ASC"
   },
   "fb3c05110dcfa7a90ae2f98b8fcf1b8d416508131da753996ea400f043799c8b": {
     "describe": {
@@ -12343,29 +12366,6 @@
       }
     },
     "query": "   SELECT number, l1_batches.timestamp, is_finished, l1_tx_count, l2_tx_count, fee_account_address, bloom, priority_ops_onchain_data, hash, parent_hash, commitment, compressed_write_logs, compressed_contracts, eth_prove_tx_id, eth_commit_tx_id, eth_execute_tx_id, merkle_root_hash, l2_to_l1_logs, l2_to_l1_messages, used_contract_hashes, compressed_initial_writes, compressed_repeated_writes, l2_l1_compressed_messages, l2_l1_merkle_root, l1_gas_price, l2_fair_gas_price, rollup_last_leaf_index, zkporter_is_available, l1_batches.bootloader_code_hash, l1_batches.default_aa_code_hash, base_fee_per_gas, aux_data_hash, pass_through_data_hash, meta_parameters_hash, protocol_version, compressed_state_diffs, system_logs, events_queue_commitment, bootloader_initial_content_commitment FROM l1_batches LEFT JOIN commitments ON commitments.l1_batch_number = l1_batches.number JOIN protocol_versions ON protocol_versions.id = l1_batches.protocol_version WHERE eth_commit_tx_id IS NULL AND number != 0 AND protocol_versions.bootloader_code_hash = $1 AND protocol_versions.default_account_code_hash = $2 AND commitment IS NOT NULL AND ( protocol_versions.id = $3 OR protocol_versions.upgrade_tx_hash IS NULL ) ORDER BY number LIMIT $4"
-  },
-  "fc28ade71e2dc6cdddd10a155608ec315bbc6ae68d00defb0a5b9182b34b4928": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Int8",
-          "Int2",
-          "Int2",
-          "Int4"
-        ]
-      }
-    },
-    "query": "  SELECT id FROM prover_jobs_fri WHERE l1_batch_number = $1 AND circuit_id = $2 AND aggregation_round = $3 AND DEPTH = $4 AND status = 'successful' ORDER BY sequence_number ASC;"
   },
   "fcca1961f34082f7186de607b922fd608166c5af98031e4dcc8a056b89696dbe": {
     "describe": {
