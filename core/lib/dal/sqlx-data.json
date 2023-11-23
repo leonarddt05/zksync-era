@@ -1632,128 +1632,6 @@
     },
     "query": "UPDATE transactions SET in_mempool = FALSE WHERE in_mempool = TRUE"
   },
-  "1faf6552c221c75b7232b55210c0c37be76a57ec9dc94584b6ccb562e8b182f2": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "l1_batch_number",
-          "ordinal": 1,
-          "type_info": "Int8"
-        },
-        {
-          "name": "circuit_type",
-          "ordinal": 2,
-          "type_info": "Text"
-        },
-        {
-          "name": "prover_input",
-          "ordinal": 3,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "status",
-          "ordinal": 4,
-          "type_info": "Text"
-        },
-        {
-          "name": "error",
-          "ordinal": 5,
-          "type_info": "Text"
-        },
-        {
-          "name": "processing_started_at",
-          "ordinal": 6,
-          "type_info": "Timestamp"
-        },
-        {
-          "name": "created_at",
-          "ordinal": 7,
-          "type_info": "Timestamp"
-        },
-        {
-          "name": "updated_at",
-          "ordinal": 8,
-          "type_info": "Timestamp"
-        },
-        {
-          "name": "time_taken",
-          "ordinal": 9,
-          "type_info": "Time"
-        },
-        {
-          "name": "aggregation_round",
-          "ordinal": 10,
-          "type_info": "Int4"
-        },
-        {
-          "name": "result",
-          "ordinal": 11,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "sequence_number",
-          "ordinal": 12,
-          "type_info": "Int4"
-        },
-        {
-          "name": "attempts",
-          "ordinal": 13,
-          "type_info": "Int4"
-        },
-        {
-          "name": "circuit_input_blob_url",
-          "ordinal": 14,
-          "type_info": "Text"
-        },
-        {
-          "name": "proccesed_by",
-          "ordinal": 15,
-          "type_info": "Text"
-        },
-        {
-          "name": "is_blob_cleaned",
-          "ordinal": 16,
-          "type_info": "Bool"
-        },
-        {
-          "name": "protocol_version",
-          "ordinal": 17,
-          "type_info": "Int4"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        true,
-        true,
-        false,
-        false,
-        false,
-        false,
-        true,
-        false,
-        false,
-        true,
-        true,
-        false,
-        true
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      }
-    },
-    "query": "SELECT * from prover_jobs where id=$1"
-  },
   "21b2f05fbf189907dc2f15c98d3c9ce169a3fd2c6d4613adae80d3ab0b62cae7": {
     "describe": {
       "columns": [
@@ -2125,6 +2003,24 @@
     },
     "query": "UPDATE transactions SET in_mempool = FALSE FROM UNNEST($1::bytea[]) AS s (address) WHERE transactions.in_mempool = TRUE AND transactions.initiator_address = s.address"
   },
+  "2b33f20245fe3ec49ade5a7249aab899f2792b4deb0e36bcacf3aea02646c54e": {
+    "describe": {
+      "columns": [
+        {
+          "name": "number",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT MAX(number) AS \"number\" FROM l1_batches WHERE hash IS NOT NULL"
+  },
   "2b679808ca47205fe6562eb20204ae4d5db10ee98532f303b0a8b084839ce078": {
     "describe": {
       "columns": [
@@ -2450,24 +2346,6 @@
     },
     "query": "UPDATE contract_verification_requests SET status = 'failed', updated_at = NOW(), error = $2, compilation_errors = $3, panic_message = $4 WHERE id = $1"
   },
-  "335826f54feadf6aa30a4e7668ad3f17a2afc6bd67d4f863e3ad61fefd1bd8d2": {
-    "describe": {
-      "columns": [
-        {
-          "name": "number",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "SELECT MAX(number) as \"number\" FROM miniblocks"
-  },
   "369240950aebd77afb5f81fb883686198f7b433108e22f7fbc225e54132a9116": {
     "describe": {
       "columns": [
@@ -2540,24 +2418,6 @@
       }
     },
     "query": "  SELECT number, hash FROM miniblocks WHERE protocol_version = $1 ORDER BY number DESC LIMIT $2"
-  },
-  "37e4a0eea7b72bd3b75c26e003f3fa62039d9b614f0f2fa3d61e8c5e95f002fd": {
-    "describe": {
-      "columns": [
-        {
-          "name": "max?",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "SELECT MAX(index) as \"max?\" FROM initial_writes"
   },
   "39c2cafd0b9620d1aa4154fbfe6be1805b2d54110b39726aca615f0f4c878f18": {
     "describe": {
@@ -3642,24 +3502,6 @@
     },
     "query": "UPDATE witness_inputs_fri SET status = $1, updated_at = NOW() WHERE l1_batch_number = $2"
   },
-  "4d2e106c809a48ace74952df2b883a5e747aaa1bc6bee28e986dccee7fa130b6": {
-    "describe": {
-      "columns": [
-        {
-          "name": "nonce",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "SELECT nonce FROM eth_txs ORDER BY id DESC LIMIT 1"
-  },
   "4d50dabc25d392e6b9d0dbe0e386ea7ef2c1178b1b0394a17442185b79f2d77d": {
     "describe": {
       "columns": [
@@ -4334,24 +4176,6 @@
     },
     "query": "  SELECT value FROM storage_logs WHERE storage_logs.hashed_key = $1 AND storage_logs.miniblock_number <= $2 ORDER BY storage_logs.miniblock_number DESC, storage_logs.operation_number DESC LIMIT 1"
   },
-  "5bc8cdc7ed710bb2f9b0035654fd7e9dcc01731ca581c6aa75d55184817bc100": {
-    "describe": {
-      "columns": [
-        {
-          "name": "number",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "SELECT MAX(number) as \"number\" FROM l1_batches WHERE hash IS NOT NULL"
-  },
   "5cc93efebc14dc0b78ed32bf7f167a44bd083f32ab308662c57ce1f726c0f1f9": {
     "describe": {
       "columns": [
@@ -4659,6 +4483,24 @@
     },
     "query": "SELECT l2_to_l1_logs FROM l1_batches WHERE number = $1"
   },
+  "68cd2ea1d13e09036d4c67ab2c8ddb3ee0b1f017243481f30bdef88ccd18608b": {
+    "describe": {
+      "columns": [
+        {
+          "name": "l1_address",
+          "ordinal": 0,
+          "type_info": "Bytea"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT l1_address FROM tokens WHERE well_known = FALSE"
+  },
   "6936e4bb3a508124c9aafa3d31d2026f581453e13a36054eb1c8b044e4b635f9": {
     "describe": {
       "columns": [],
@@ -4731,24 +4573,6 @@
       }
     },
     "query": "SELECT storage.value AS \"value!\", tokens.l1_address AS \"l1_address!\", tokens.l2_address AS \"l2_address!\", tokens.symbol AS \"symbol!\", tokens.name AS \"name!\", tokens.decimals AS \"decimals!\", tokens.usd_price AS \"usd_price?\" FROM storage INNER JOIN tokens ON storage.address = tokens.l2_address OR ( storage.address = $2 AND tokens.l2_address = $3 ) WHERE storage.hashed_key = ANY ($1) AND storage.value != $4"
-  },
-  "6a282084b02cddd8646e984a729b689bdb758e07096fc8cf60f68c6ec5bd6a9c": {
-    "describe": {
-      "columns": [
-        {
-          "name": "max?",
-          "ordinal": 0,
-          "type_info": "Int4"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "SELECT MAX(id) as \"max?\" FROM protocol_versions"
   },
   "6c56545fe9a5b378a63e0d1d5d134320a9cd1646bb42d2bb87b26d7942b3ae54": {
     "describe": {
@@ -5311,6 +5135,30 @@
       }
     },
     "query": "UPDATE miniblocks SET l1_batch_number = $1 WHERE l1_batch_number IS NULL"
+  },
+  "7e0dd1177c954d3456a89b52faffe74ef0a421534a226ce59bdc76b2d592c3ed": {
+    "describe": {
+      "columns": [
+        {
+          "name": "l1_address",
+          "ordinal": 0,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "l2_address",
+          "ordinal": 1,
+          "type_info": "Bytea"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT l1_address, l2_address FROM tokens WHERE well_known = TRUE"
   },
   "7f3b7210d0997fb0195db450ccf160f902e5698cc8cd273e3ed21e5c1f5d43ed": {
     "describe": {
@@ -6469,24 +6317,6 @@
     },
     "query": "SELECT COUNT(*) AS \"count!\" FROM contract_verification_requests WHERE status = 'queued'"
   },
-  "8fe01036cac5181aabfdc06095da291c4de6b1e0f82f846c37509bb550ef544e": {
-    "describe": {
-      "columns": [
-        {
-          "name": "l1_address",
-          "ordinal": 0,
-          "type_info": "Bytea"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "SELECT l1_address FROM tokens WHERE well_known = false"
-  },
   "8ff7952329b155cf5d18dc2caf1bf54f1276879fe5e01dc293b7adb0d46ad344": {
     "describe": {
       "columns": [
@@ -7416,6 +7246,24 @@
     },
     "query": "  SELECT * FROM eth_txs WHERE confirmed_eth_tx_history_id IS NULL AND id <= ( SELECT COALESCE(MAX(eth_tx_id), 0) FROM eth_txs_history WHERE sent_at_block IS NOT NULL ) ORDER BY id"
   },
+  "9e0b7befb1659073e72fb605719673af6806376ab9bbc868a96dee98ca45cf61": {
+    "describe": {
+      "columns": [
+        {
+          "name": "number",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT MAX(number) AS \"number\" FROM l1_batches"
+  },
   "9e8a1094160376095967168e6d98fea9c3f78fa3182020c823b248b208a64e50": {
     "describe": {
       "columns": [
@@ -7770,6 +7618,24 @@
       }
     },
     "query": "INSERT INTO node_aggregation_witness_jobs (l1_batch_number, protocol_version, status, created_at, updated_at) VALUES ($1, $2, 'waiting_for_artifacts', NOW(), NOW())"
+  },
+  "a64586288355e20c1f9759cb060a70d530d92df567d602b8e12fd2378af4d5ef": {
+    "describe": {
+      "columns": [
+        {
+          "name": "nonce",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "  SELECT nonce FROM eth_txs ORDER BY id DESC LIMIT 1"
   },
   "a870d2eb52c3fe4d366dde87bc851590f4bdc1344ba1861e345058bc1243b1ef": {
     "describe": {
@@ -8236,6 +8102,24 @@
     },
     "query": "UPDATE eth_txs SET confirmed_eth_tx_history_id = $1 WHERE id = $2"
   },
+  "b1d0d6d300e8b2bf92a4e8cef0314b60a1ddffa54f86b411502170ede3294230": {
+    "describe": {
+      "columns": [
+        {
+          "name": "count!",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT COUNT(*) AS \"count!\" FROM l1_batches"
+  },
   "b2b43213ee74bf5eb34476f72faa8bbad1f03cfc840a641f719a63f53fd801ac": {
     "describe": {
       "columns": [
@@ -8266,29 +8150,41 @@
     },
     "query": "DELETE FROM transactions WHERE in_mempool = TRUE AND initiator_address = ANY ($1)"
   },
-  "b4da918ee3b36b56d95c8834edebe65eb48ebb8270fa1e6ccf73ad354fd71134": {
+  "b4add8b5162af39ab6b39e7323e04537296c5d7c2495db13b5e16b5eadcfd631": {
     "describe": {
       "columns": [
         {
-          "name": "l1_address",
+          "name": "max?",
           "ordinal": 0,
-          "type_info": "Bytea"
-        },
-        {
-          "name": "l2_address",
-          "ordinal": 1,
-          "type_info": "Bytea"
+          "type_info": "Int4"
         }
       ],
       "nullable": [
-        false,
-        false
+        null
       ],
       "parameters": {
         "Left": []
       }
     },
-    "query": "SELECT l1_address, l2_address FROM tokens WHERE well_known = true"
+    "query": "SELECT MAX(id) AS \"max?\" FROM protocol_versions"
+  },
+  "b578cc0ae51f6027a2e14f59514c31ec4cb873c71728de6defa85716fe26e608": {
+    "describe": {
+      "columns": [
+        {
+          "name": "number",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT MAX(number) AS \"number\" FROM miniblocks"
   },
   "b5c3b03dd8857e5d247b729dcce6da08b061dd114c32cae8a2a19da11cb14228": {
     "describe": {
@@ -8340,6 +8236,24 @@
     },
     "query": "SELECT INDEX FROM initial_writes WHERE hashed_key = $1"
   },
+  "b5e4cdf4144319929ff59ee82894075a862f8bc23db32d6c03033c32f1a4ff0b": {
+    "describe": {
+      "columns": [
+        {
+          "name": "max?",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT MAX(INDEX) AS \"max?\" FROM initial_writes"
+  },
   "b727e8299d89bc8e72f78dcf151a3300c206e93f1b69a712232e56faa19d3bc1": {
     "describe": {
       "columns": [
@@ -8384,6 +8298,128 @@
       }
     },
     "query": "  SELECT l1_block_number FROM transactions WHERE priority_op_id IS NOT NULL ORDER BY priority_op_id DESC LIMIT 1"
+  },
+  "b805d2dae42853204ec4876b928dc6339e614ac035c9522f65a7389b2d16f9f8": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "l1_batch_number",
+          "ordinal": 1,
+          "type_info": "Int8"
+        },
+        {
+          "name": "circuit_type",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "prover_input",
+          "ordinal": 3,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "status",
+          "ordinal": 4,
+          "type_info": "Text"
+        },
+        {
+          "name": "error",
+          "ordinal": 5,
+          "type_info": "Text"
+        },
+        {
+          "name": "processing_started_at",
+          "ordinal": 6,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 7,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 8,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "time_taken",
+          "ordinal": 9,
+          "type_info": "Time"
+        },
+        {
+          "name": "aggregation_round",
+          "ordinal": 10,
+          "type_info": "Int4"
+        },
+        {
+          "name": "result",
+          "ordinal": 11,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "sequence_number",
+          "ordinal": 12,
+          "type_info": "Int4"
+        },
+        {
+          "name": "attempts",
+          "ordinal": 13,
+          "type_info": "Int4"
+        },
+        {
+          "name": "circuit_input_blob_url",
+          "ordinal": 14,
+          "type_info": "Text"
+        },
+        {
+          "name": "proccesed_by",
+          "ordinal": 15,
+          "type_info": "Text"
+        },
+        {
+          "name": "is_blob_cleaned",
+          "ordinal": 16,
+          "type_info": "Bool"
+        },
+        {
+          "name": "protocol_version",
+          "ordinal": 17,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        true,
+        true,
+        false,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "SELECT * FROM prover_jobs WHERE id = $1"
   },
   "b8505173c8020e9fe2cc8fd19bfd9f7ff6578ecc2fdfbc495005e1525222cd36": {
     "describe": {
@@ -9670,24 +9706,6 @@
       }
     },
     "query": "   UPDATE leaf_aggregation_witness_jobs_fri SET status = 'queued' WHERE (l1_batch_number, circuit_id) IN ( SELECT prover_jobs_fri.l1_batch_number, prover_jobs_fri.circuit_id FROM prover_jobs_fri JOIN leaf_aggregation_witness_jobs_fri lawj ON prover_jobs_fri.l1_batch_number = lawj.l1_batch_number AND prover_jobs_fri.circuit_id = lawj.circuit_id WHERE lawj.status = 'waiting_for_proofs' AND prover_jobs_fri.status = 'successful' AND prover_jobs_fri.aggregation_round = 0 GROUP BY prover_jobs_fri.l1_batch_number, prover_jobs_fri.circuit_id, lawj.number_of_basic_circuits HAVING COUNT(*) = lawj.number_of_basic_circuits ) RETURNING l1_batch_number, circuit_id;"
-  },
-  "d0ff67e7c59684a0e4409726544cf850dbdbb36d038ebbc6a1c5bf0e76b0358c": {
-    "describe": {
-      "columns": [
-        {
-          "name": "count!",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "SELECT COUNT(*) as \"count!\" FROM l1_batches"
   },
   "d1def7bf1e6eee1e0fb0dd1eda415e5b993d6f6df261815f204c2649a2aef78b": {
     "describe": {
@@ -12011,24 +12029,6 @@
       }
     },
     "query": "   INSERT INTO contract_verification_requests ( contract_address, source_code, contract_name, zk_compiler_version, compiler_version, optimization_used, optimizer_mode, constructor_arguments, is_system, status, created_at, updated_at ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'queued', NOW(), NOW()) RETURNING id"
-  },
-  "fa33d51f8627376832b11bb174354e65e645ee2fb81564a97725518f47ae6f57": {
-    "describe": {
-      "columns": [
-        {
-          "name": "number",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "SELECT MAX(number) as \"number\" FROM l1_batches"
   },
   "fa6ef06edd04d20ddbdf22a63092222e89bb84d6093b07bda16407811d9c33c0": {
     "describe": {

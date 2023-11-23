@@ -51,6 +51,7 @@ export const command = new Command('fmt')
         if (extension) {
             switch (extension) {
                 case 'rust':
+                    await formatSqlxQueries(cmd.check)
                     await rustfmt(cmd.check);
                     break;
                 case 'l1-contracts':
@@ -61,9 +62,6 @@ export const command = new Command('fmt')
                     break;
                 case 'system-contracts':
                     await prettierSystemContracts(cmd.check);
-                    break;
-                case 'sqlx-queries':
-                    await formatSqlxQueries(cmd.check);
                     break;
                 default:
                     await prettier(extension, cmd.check);
@@ -76,7 +74,6 @@ export const command = new Command('fmt')
             promises.push(prettierL1Contracts(cmd.check));
             promises.push(prettierL2Contracts(cmd.check));
             promises.push(prettierSystemContracts(cmd.check));
-            promises.push(formatSqlxQueries(cmd.check));
             await Promise.all(promises);
         }
     });
