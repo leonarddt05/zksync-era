@@ -32,8 +32,10 @@ pub struct BlocksWeb3Dal<'a, 'c> {
 impl BlocksWeb3Dal<'_, '_> {
     pub async fn get_sealed_miniblock_number(&mut self) -> sqlx::Result<MiniblockNumber> {
         let number = sqlx::query!(
-            "SELECT MAX(number) AS \"number\" \
-               FROM miniblocks"
+            "SELECT \
+                 MAX(number) AS \"number\" \
+             FROM \
+                 miniblocks"
         )
         .instrument("get_sealed_block_number")
         .report_latency()
@@ -46,8 +48,10 @@ impl BlocksWeb3Dal<'_, '_> {
 
     pub async fn get_sealed_l1_batch_number(&mut self) -> sqlx::Result<L1BatchNumber> {
         let number = sqlx::query!(
-            "SELECT MAX(number) AS \"number\" \
-               FROM l1_batches"
+            "SELECT \
+                 MAX(number) AS \"number\" \
+             FROM \
+                 l1_batches"
         )
         .instrument("get_sealed_block_number")
         .report_latency()
@@ -174,12 +178,17 @@ impl BlocksWeb3Dal<'_, '_> {
         limit: usize,
     ) -> sqlx::Result<(Vec<H256>, Option<MiniblockNumber>)> {
         let rows = sqlx::query!(
-            "  SELECT number, \
-                      hash \
-                 FROM miniblocks \
-                WHERE number > $1 \
-             ORDER BY number ASC \
-                LIMIT $2",
+            "SELECT \
+                 number, \
+                 hash \
+             FROM \
+                 miniblocks \
+             WHERE \
+                 number > $1 \
+             ORDER BY \
+                 number ASC \
+             LIMIT \
+                 $2",
             from_block.0 as i64,
             limit as i32
         )
@@ -197,12 +206,16 @@ impl BlocksWeb3Dal<'_, '_> {
         from_block: MiniblockNumber,
     ) -> sqlx::Result<Vec<BlockHeader>> {
         let rows = sqlx::query!(
-            "  SELECT hash, \
-                      number, \
-                      timestamp \
-                 FROM miniblocks \
-                WHERE number > $1 \
-             ORDER BY number ASC",
+            "SELECT \
+                 hash, \
+                 number, \
+                 timestamp \
+             FROM \
+                 miniblocks \
+             WHERE \
+                 number > $1 \
+             ORDER BY \
+                 number ASC",
             from_block.0 as i64,
         )
         .fetch_all(self.storage.conn())
@@ -276,9 +289,12 @@ impl BlocksWeb3Dal<'_, '_> {
             }
         };
         let timestamp = sqlx::query!(
-            "SELECT timestamp \
-               FROM miniblocks \
-              WHERE number = $1",
+            "SELECT \
+                 timestamp \
+             FROM \
+                 miniblocks \
+             WHERE \
+                 number = $1",
             first_miniblock_of_batch.0 as i64
         )
         .fetch_optional(self.storage.conn())
@@ -292,9 +308,12 @@ impl BlocksWeb3Dal<'_, '_> {
         block_number: MiniblockNumber,
     ) -> sqlx::Result<Option<H256>> {
         let hash = sqlx::query!(
-            "SELECT hash \
-               FROM miniblocks \
-              WHERE number = $1",
+            "SELECT \
+                 hash \
+             FROM \
+                 miniblocks \
+             WHERE \
+                 number = $1",
             block_number.0 as i64
         )
         .fetch_optional(self.storage.conn())
@@ -308,9 +327,12 @@ impl BlocksWeb3Dal<'_, '_> {
         block_number: L1BatchNumber,
     ) -> sqlx::Result<Vec<L2ToL1Log>> {
         let raw_logs = sqlx::query!(
-            "SELECT l2_to_l1_logs \
-               FROM l1_batches \
-              WHERE number = $1",
+            "SELECT \
+                 l2_to_l1_logs \
+             FROM \
+                 l1_batches \
+             WHERE \
+                 number = $1",
             block_number.0 as i64
         )
         .fetch_optional(self.storage.conn())
@@ -329,9 +351,12 @@ impl BlocksWeb3Dal<'_, '_> {
         miniblock_number: MiniblockNumber,
     ) -> sqlx::Result<Option<L1BatchNumber>> {
         let number: Option<i64> = sqlx::query!(
-            "SELECT l1_batch_number \
-               FROM miniblocks \
-              WHERE number = $1",
+            "SELECT \
+                 l1_batch_number \
+             FROM \
+                 miniblocks \
+             WHERE \
+                 number = $1",
             miniblock_number.0 as i64
         )
         .fetch_optional(self.storage.conn())
@@ -346,10 +371,13 @@ impl BlocksWeb3Dal<'_, '_> {
         l1_batch_number: L1BatchNumber,
     ) -> sqlx::Result<Option<(MiniblockNumber, MiniblockNumber)>> {
         let row = sqlx::query!(
-            "SELECT MIN(miniblocks.number) AS \"min?\", \
-                    MAX(miniblocks.number) AS \"max?\" \
-               FROM miniblocks \
-              WHERE l1_batch_number = $1",
+            "SELECT \
+                 MIN(miniblocks.number) AS \"min?\", \
+                 MAX(miniblocks.number) AS \"max?\" \
+             FROM \
+                 miniblocks \
+             WHERE \
+                 l1_batch_number = $1",
             l1_batch_number.0 as i64
         )
         .fetch_one(self.storage.conn())
@@ -369,10 +397,13 @@ impl BlocksWeb3Dal<'_, '_> {
         tx_hash: H256,
     ) -> sqlx::Result<Option<(L1BatchNumber, u16)>> {
         let row = sqlx::query!(
-            "SELECT l1_batch_number, \
-                    l1_batch_tx_index \
-               FROM transactions \
-              WHERE hash = $1",
+            "SELECT \
+                 l1_batch_number, \
+                 l1_batch_tx_index \
+             FROM \
+                 transactions \
+             WHERE \
+                 hash = $1",
             tx_hash.as_bytes()
         )
         .fetch_optional(self.storage.conn())
@@ -394,13 +425,19 @@ impl BlocksWeb3Dal<'_, '_> {
     ) -> sqlx::Result<Vec<Call>> {
         Ok(sqlx::query_as!(
             CallTrace,
-            "SELECT * \
-               FROM call_traces \
-              WHERE tx_hash IN ( \
-                       SELECT hash \
-                         FROM transactions \
-                        WHERE miniblock_number = $1 \
-                    )",
+            "SELECT \
+                 * \
+             FROM \
+                 call_traces \
+             WHERE \
+                 tx_hash IN ( \
+                     SELECT \
+                         hash \
+                     FROM \
+                         transactions \
+                     WHERE \
+                         miniblock_number = $1 \
+                 )",
             block_number.0 as i64
         )
         .fetch_all(self.storage.conn())
@@ -418,11 +455,16 @@ impl BlocksWeb3Dal<'_, '_> {
         block_count: u64,
     ) -> sqlx::Result<Vec<U256>> {
         let result: Vec<_> = sqlx::query!(
-            "  SELECT base_fee_per_gas \
-                 FROM miniblocks \
-                WHERE number <= $1 \
-             ORDER BY number DESC \
-                LIMIT $2",
+            "SELECT \
+                 base_fee_per_gas \
+             FROM \
+                 miniblocks \
+             WHERE \
+                 number <= $1 \
+             ORDER BY \
+                 number DESC \
+             LIMIT \
+                 $2",
             newest_block.0 as i64,
             block_count as i64
         )
@@ -443,45 +485,50 @@ impl BlocksWeb3Dal<'_, '_> {
         {
             let storage_block_details = sqlx::query_as!(
                 StorageBlockDetails,
-                "   SELECT miniblocks.number, \
-                           COALESCE( \
-                           miniblocks.l1_batch_number, \
-                           ( \
-                              SELECT (MAX(number) + 1) \
-                                FROM l1_batches \
-                           ) \
-                           ) AS \"l1_batch_number!\", \
-                           miniblocks.timestamp, \
-                           miniblocks.l1_tx_count, \
-                           miniblocks.l2_tx_count, \
-                           miniblocks.hash AS \"root_hash?\", \
-                           commit_tx.tx_hash AS \"commit_tx_hash?\", \
-                           commit_tx.confirmed_at AS \"committed_at?\", \
-                           prove_tx.tx_hash AS \"prove_tx_hash?\", \
-                           prove_tx.confirmed_at AS \"proven_at?\", \
-                           execute_tx.tx_hash AS \"execute_tx_hash?\", \
-                           execute_tx.confirmed_at AS \"executed_at?\", \
-                           miniblocks.l1_gas_price, \
-                           miniblocks.l2_fair_gas_price, \
-                           miniblocks.bootloader_code_hash, \
-                           miniblocks.default_aa_code_hash, \
-                           miniblocks.protocol_version, \
-                           l1_batches.fee_account_address AS \"fee_account_address?\" \
-                      FROM miniblocks \
-                 LEFT JOIN l1_batches ON miniblocks.l1_batch_number = l1_batches.number \
-                 LEFT JOIN eth_txs_history AS commit_tx ON ( \
-                           l1_batches.eth_commit_tx_id = commit_tx.eth_tx_id \
-                       AND commit_tx.confirmed_at IS NOT NULL \
-                           ) \
-                 LEFT JOIN eth_txs_history AS prove_tx ON ( \
-                           l1_batches.eth_prove_tx_id = prove_tx.eth_tx_id \
-                       AND prove_tx.confirmed_at IS NOT NULL \
-                           ) \
-                 LEFT JOIN eth_txs_history AS execute_tx ON ( \
-                           l1_batches.eth_execute_tx_id = execute_tx.eth_tx_id \
-                       AND execute_tx.confirmed_at IS NOT NULL \
-                           ) \
-                     WHERE miniblocks.number = $1",
+                "SELECT \
+                     miniblocks.number, \
+                     COALESCE( \
+                         miniblocks.l1_batch_number, \
+                         ( \
+                             SELECT \
+                                 (MAX(number) + 1) \
+                             FROM \
+                                 l1_batches \
+                         ) \
+                     ) AS \"l1_batch_number!\", \
+                     miniblocks.timestamp, \
+                     miniblocks.l1_tx_count, \
+                     miniblocks.l2_tx_count, \
+                     miniblocks.hash AS \"root_hash?\", \
+                     commit_tx.tx_hash AS \"commit_tx_hash?\", \
+                     commit_tx.confirmed_at AS \"committed_at?\", \
+                     prove_tx.tx_hash AS \"prove_tx_hash?\", \
+                     prove_tx.confirmed_at AS \"proven_at?\", \
+                     execute_tx.tx_hash AS \"execute_tx_hash?\", \
+                     execute_tx.confirmed_at AS \"executed_at?\", \
+                     miniblocks.l1_gas_price, \
+                     miniblocks.l2_fair_gas_price, \
+                     miniblocks.bootloader_code_hash, \
+                     miniblocks.default_aa_code_hash, \
+                     miniblocks.protocol_version, \
+                     l1_batches.fee_account_address AS \"fee_account_address?\" \
+                 FROM \
+                     miniblocks \
+                     LEFT JOIN l1_batches ON miniblocks.l1_batch_number = l1_batches.number \
+                     LEFT JOIN eth_txs_history AS commit_tx ON ( \
+                         l1_batches.eth_commit_tx_id = commit_tx.eth_tx_id \
+                         AND commit_tx.confirmed_at IS NOT NULL \
+                     ) \
+                     LEFT JOIN eth_txs_history AS prove_tx ON ( \
+                         l1_batches.eth_prove_tx_id = prove_tx.eth_tx_id \
+                         AND prove_tx.confirmed_at IS NOT NULL \
+                     ) \
+                     LEFT JOIN eth_txs_history AS execute_tx ON ( \
+                         l1_batches.eth_execute_tx_id = execute_tx.eth_tx_id \
+                         AND execute_tx.confirmed_at IS NOT NULL \
+                     ) \
+                 WHERE \
+                     miniblocks.number = $1",
                 block_number.0 as i64
             )
             .instrument("get_block_details")
@@ -503,35 +550,38 @@ impl BlocksWeb3Dal<'_, '_> {
         {
             let l1_batch_details: Option<StorageL1BatchDetails> = sqlx::query_as!(
                 StorageL1BatchDetails,
-                "   SELECT l1_batches.number, \
-                           l1_batches.timestamp, \
-                           l1_batches.l1_tx_count, \
-                           l1_batches.l2_tx_count, \
-                           l1_batches.hash AS \"root_hash?\", \
-                           commit_tx.tx_hash AS \"commit_tx_hash?\", \
-                           commit_tx.confirmed_at AS \"committed_at?\", \
-                           prove_tx.tx_hash AS \"prove_tx_hash?\", \
-                           prove_tx.confirmed_at AS \"proven_at?\", \
-                           execute_tx.tx_hash AS \"execute_tx_hash?\", \
-                           execute_tx.confirmed_at AS \"executed_at?\", \
-                           l1_batches.l1_gas_price, \
-                           l1_batches.l2_fair_gas_price, \
-                           l1_batches.bootloader_code_hash, \
-                           l1_batches.default_aa_code_hash \
-                      FROM l1_batches \
-                 LEFT JOIN eth_txs_history AS commit_tx ON ( \
-                           l1_batches.eth_commit_tx_id = commit_tx.eth_tx_id \
-                       AND commit_tx.confirmed_at IS NOT NULL \
-                           ) \
-                 LEFT JOIN eth_txs_history AS prove_tx ON ( \
-                           l1_batches.eth_prove_tx_id = prove_tx.eth_tx_id \
-                       AND prove_tx.confirmed_at IS NOT NULL \
-                           ) \
-                 LEFT JOIN eth_txs_history AS execute_tx ON ( \
-                           l1_batches.eth_execute_tx_id = execute_tx.eth_tx_id \
-                       AND execute_tx.confirmed_at IS NOT NULL \
-                           ) \
-                     WHERE l1_batches.number = $1",
+                "SELECT \
+                     l1_batches.number, \
+                     l1_batches.timestamp, \
+                     l1_batches.l1_tx_count, \
+                     l1_batches.l2_tx_count, \
+                     l1_batches.hash AS \"root_hash?\", \
+                     commit_tx.tx_hash AS \"commit_tx_hash?\", \
+                     commit_tx.confirmed_at AS \"committed_at?\", \
+                     prove_tx.tx_hash AS \"prove_tx_hash?\", \
+                     prove_tx.confirmed_at AS \"proven_at?\", \
+                     execute_tx.tx_hash AS \"execute_tx_hash?\", \
+                     execute_tx.confirmed_at AS \"executed_at?\", \
+                     l1_batches.l1_gas_price, \
+                     l1_batches.l2_fair_gas_price, \
+                     l1_batches.bootloader_code_hash, \
+                     l1_batches.default_aa_code_hash \
+                 FROM \
+                     l1_batches \
+                     LEFT JOIN eth_txs_history AS commit_tx ON ( \
+                         l1_batches.eth_commit_tx_id = commit_tx.eth_tx_id \
+                         AND commit_tx.confirmed_at IS NOT NULL \
+                     ) \
+                     LEFT JOIN eth_txs_history AS prove_tx ON ( \
+                         l1_batches.eth_prove_tx_id = prove_tx.eth_tx_id \
+                         AND prove_tx.confirmed_at IS NOT NULL \
+                     ) \
+                     LEFT JOIN eth_txs_history AS execute_tx ON ( \
+                         l1_batches.eth_execute_tx_id = execute_tx.eth_tx_id \
+                         AND execute_tx.confirmed_at IS NOT NULL \
+                     ) \
+                 WHERE \
+                     l1_batches.number = $1",
                 l1_batch_number.0 as i64
             )
             .instrument("get_l1_batch_details")
@@ -560,18 +610,27 @@ impl BlocksWeb3Dal<'_, '_> {
         // that's why we are interested in funding it.
         // The goal of this query is to find the first miniblock, which contains given virtual block.
         let record = sqlx::query!(
-            "  SELECT number \
-                 FROM ( \
-                         SELECT number, \
-                                SUM(virtual_blocks) OVER ( \
-                                 ORDER BY number \
-                                ) AS virtual_block_sum \
-                           FROM miniblocks \
-                          WHERE l1_batch_number >= $1 \
-                      ) AS vts \
-                WHERE virtual_block_sum >= $2 \
-             ORDER BY number \
-                LIMIT 1",
+            "SELECT \
+                 number \
+             FROM \
+                 ( \
+                     SELECT \
+                         number, \
+                         SUM(virtual_blocks) OVER ( \
+                             ORDER BY \
+                                 number \
+                         ) AS virtual_block_sum \
+                     FROM \
+                         miniblocks \
+                     WHERE \
+                         l1_batch_number >= $1 \
+                 ) AS vts \
+             WHERE \
+                 virtual_block_sum >= $2 \
+             ORDER BY \
+                 number \
+             LIMIT \
+                 1",
             migration_start_l1_batch_number as i64,
             virtual_block_offset as i64
         )
@@ -606,18 +665,27 @@ impl BlocksWeb3Dal<'_, '_> {
         // The goal of this query is to find the last miniblock, that contains logs all logs(in the last virtual block),
         // created before or in a given virtual block.
         let record = sqlx::query!(
-            "  SELECT number \
-                 FROM ( \
-                         SELECT number, \
-                                SUM(virtual_blocks) OVER ( \
-                                 ORDER BY number \
-                                ) AS virtual_block_sum \
-                           FROM miniblocks \
-                          WHERE l1_batch_number >= $1 \
-                      ) AS vts \
-                WHERE virtual_block_sum <= $2 \
-             ORDER BY number DESC \
-                LIMIT 1",
+            "SELECT \
+                 number \
+             FROM \
+                 ( \
+                     SELECT \
+                         number, \
+                         SUM(virtual_blocks) OVER ( \
+                             ORDER BY \
+                                 number \
+                         ) AS virtual_block_sum \
+                     FROM \
+                         miniblocks \
+                     WHERE \
+                         l1_batch_number >= $1 \
+                 ) AS vts \
+             WHERE \
+                 virtual_block_sum <= $2 \
+             ORDER BY \
+                 number DESC \
+             LIMIT \
+                 1",
             migration_start_l1_batch_number as i64,
             virtual_block_offset as i64
         )

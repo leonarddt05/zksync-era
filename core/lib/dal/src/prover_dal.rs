@@ -38,23 +38,32 @@ impl ProverDal<'_, '_> {
     ) -> Option<ProverJobMetadata> {
         let protocol_versions: Vec<i32> = protocol_versions.iter().map(|&id| id as i32).collect();
         let result: Option<ProverJobMetadata> = sqlx::query!(
-            "   UPDATE prover_jobs \
-                   SET status = 'in_progress', \
-                       attempts = attempts + 1, \
-                       updated_at = NOW(), \
-                       processing_started_at = NOW() \
-                 WHERE id = ( \
-                          SELECT id \
-                            FROM prover_jobs \
-                           WHERE status = 'queued' \
-                             AND protocol_version = ANY ($1) \
-                        ORDER BY aggregation_round DESC, \
-                                 l1_batch_number ASC, \
-                                 id ASC \
-                           LIMIT 1 \
-                             FOR UPDATE SKIP LOCKED \
-                       ) \
-             RETURNING prover_jobs.*",
+            "UPDATE prover_jobs \
+             SET \
+                 status = 'in_progress', \
+                 attempts = attempts + 1, \
+                 updated_at = NOW(), \
+                 processing_started_at = NOW() \
+             WHERE \
+                 id = ( \
+                     SELECT \
+                         id \
+                     FROM \
+                         prover_jobs \
+                     WHERE \
+                         status = 'queued' \
+                         AND protocol_version = ANY ($1) \
+                     ORDER BY \
+                         aggregation_round DESC, \
+                         l1_batch_number ASC, \
+                         id ASC \
+                     LIMIT \
+                         1 \
+                     FOR UPDATE \
+                         SKIP LOCKED \
+                 ) \
+             RETURNING \
+                 prover_jobs.*",
             &protocol_versions[..]
         )
         .fetch_optional(self.storage.conn())
@@ -73,11 +82,15 @@ impl ProverDal<'_, '_> {
     pub async fn get_proven_l1_batches(&mut self) -> Vec<(L1BatchNumber, AggregationRound)> {
         {
             sqlx::query!(
-                "  SELECT MAX(l1_batch_number) AS \"l1_batch_number!\", \
-                          aggregation_round \
-                     FROM prover_jobs \
-                    WHERE status = 'successful' \
-                 GROUP BY aggregation_round"
+                "SELECT \
+                     MAX(l1_batch_number) AS \"l1_batch_number!\", \
+                     aggregation_round \
+                 FROM \
+                     prover_jobs \
+                 WHERE \
+                     status = 'successful' \
+                 GROUP BY \
+                     aggregation_round"
             )
             .fetch_all(self.storage.conn())
             .await
@@ -102,24 +115,33 @@ impl ProverDal<'_, '_> {
             let protocol_versions: Vec<i32> =
                 protocol_versions.iter().map(|&id| id as i32).collect();
             let result: Option<ProverJobMetadata> = sqlx::query!(
-                "   UPDATE prover_jobs \
-                       SET status = 'in_progress', \
-                           attempts = attempts + 1, \
-                           updated_at = NOW(), \
-                           processing_started_at = NOW() \
-                     WHERE id = ( \
-                              SELECT id \
-                                FROM prover_jobs \
-                               WHERE circuit_type = ANY ($1) \
-                                 AND status = 'queued' \
-                                 AND protocol_version = ANY ($2) \
-                            ORDER BY aggregation_round DESC, \
-                                     l1_batch_number ASC, \
-                                     id ASC \
-                               LIMIT 1 \
-                                 FOR UPDATE SKIP LOCKED \
-                           ) \
-                 RETURNING prover_jobs.*",
+                "UPDATE prover_jobs \
+                 SET \
+                     status = 'in_progress', \
+                     attempts = attempts + 1, \
+                     updated_at = NOW(), \
+                     processing_started_at = NOW() \
+                 WHERE \
+                     id = ( \
+                         SELECT \
+                             id \
+                         FROM \
+                             prover_jobs \
+                         WHERE \
+                             circuit_type = ANY ($1) \
+                             AND status = 'queued' \
+                             AND protocol_version = ANY ($2) \
+                         ORDER BY \
+                             aggregation_round DESC, \
+                             l1_batch_number ASC, \
+                             id ASC \
+                         LIMIT \
+                             1 \
+                         FOR UPDATE \
+                             SKIP LOCKED \
+                     ) \
+                 RETURNING \
+                     prover_jobs.*",
                 &circuit_types[..],
                 &protocol_versions[..]
             )
@@ -150,20 +172,22 @@ impl ProverDal<'_, '_> {
             let it = circuit_types_and_urls.into_iter().enumerate();
             for (sequence_number, (circuit, circuit_input_blob_url)) in it {
                 sqlx::query!(
-                    "INSERT INTO prover_jobs ( \
-                            l1_batch_number, \
-                            circuit_type, \
-                            sequence_number, \
-                            prover_input, \
-                            aggregation_round, \
-                            circuit_input_blob_url, \
-                            protocol_version, \
-                            status, \
-                            created_at, \
-                            updated_at \
-                            ) \
-                     VALUES ($1, $2, $3, $4, $5, $6, $7, 'queued', NOW(), NOW()) \
-                         ON CONFLICT (l1_batch_number, aggregation_round, sequence_number) DO NOTHING",
+                    "INSERT INTO \
+                         prover_jobs ( \
+                             l1_batch_number, \
+                             circuit_type, \
+                             sequence_number, \
+                             prover_input, \
+                             aggregation_round, \
+                             circuit_input_blob_url, \
+                             protocol_version, \
+                             status, \
+                             created_at, \
+                             updated_at \
+                         ) \
+                     VALUES \
+                         ($1, $2, $3, $4, $5, $6, $7, 'queued', NOW(), NOW()) \
+                     ON CONFLICT (l1_batch_number, aggregation_round, sequence_number) DO NOTHING",
                     l1_batch_number.0 as i64,
                     circuit,
                     sequence_number as i64,
@@ -194,12 +218,14 @@ impl ProverDal<'_, '_> {
         {
             sqlx::query!(
                 "UPDATE prover_jobs \
-                    SET status = 'successful', \
-                        updated_at = NOW(), \
-                        time_taken = $1, \
-                        result = $2, \
-                        proccesed_by = $3 \
-                  WHERE id = $4",
+                 SET \
+                     status = 'successful', \
+                     updated_at = NOW(), \
+                     time_taken = $1, \
+                     result = $2, \
+                     proccesed_by = $3 \
+                 WHERE \
+                     id = $4",
                 duration_to_naive_time(time_taken),
                 &proof,
                 proccesed_by,
@@ -225,13 +251,16 @@ impl ProverDal<'_, '_> {
             let mut transaction = self.storage.start_transaction().await.unwrap();
 
             let row = sqlx::query!(
-                "   UPDATE prover_jobs \
-                       SET status = 'failed', \
-                           error = $1, \
-                           updated_at = NOW() \
-                     WHERE id = $2 \
-                 RETURNING l1_batch_number, \
-                           attempts",
+                "UPDATE prover_jobs \
+                 SET \
+                     status = 'failed', \
+                     error = $1, \
+                     updated_at = NOW() \
+                 WHERE \
+                     id = $2 \
+                 RETURNING \
+                     l1_batch_number, \
+                     attempts",
                 error,
                 id as i64,
             )
@@ -259,27 +288,30 @@ impl ProverDal<'_, '_> {
         let processing_timeout = pg_interval_from_duration(processing_timeout);
         {
             sqlx::query!(
-                "   UPDATE prover_jobs \
-                       SET status = 'queued', \
-                           updated_at = NOW(), \
-                           processing_started_at = NOW() \
-                     WHERE ( \
-                           status = 'in_progress' \
-                       AND processing_started_at <= NOW() - $1::INTERVAL \
-                       AND attempts < $2 \
-                           ) \
-                        OR ( \
-                           status = 'in_gpu_proof' \
-                       AND processing_started_at <= NOW() - $1::INTERVAL \
-                       AND attempts < $2 \
-                           ) \
-                        OR ( \
-                           status = 'failed' \
-                       AND attempts < $2 \
-                           ) \
-                 RETURNING id, \
-                           status, \
-                           attempts",
+                "UPDATE prover_jobs \
+                 SET \
+                     status = 'queued', \
+                     updated_at = NOW(), \
+                     processing_started_at = NOW() \
+                 WHERE \
+                     ( \
+                         status = 'in_progress' \
+                         AND processing_started_at <= NOW() - $1::INTERVAL \
+                         AND attempts < $2 \
+                     ) \
+                     OR ( \
+                         status = 'in_gpu_proof' \
+                         AND processing_started_at <= NOW() - $1::INTERVAL \
+                         AND attempts < $2 \
+                     ) \
+                     OR ( \
+                         status = 'failed' \
+                         AND attempts < $2 \
+                     ) \
+                 RETURNING \
+                     id, \
+                     status, \
+                     attempts",
                 &processing_timeout,
                 max_attempts as i32,
             )
@@ -305,14 +337,17 @@ impl ProverDal<'_, '_> {
     ) -> Vec<L1BatchProofForL1> {
         {
             sqlx::query!(
-                "SELECT prover_jobs.result AS proof, \
-                        scheduler_witness_jobs.aggregation_result_coords \
-                   FROM prover_jobs \
-                  INNER JOIN scheduler_witness_jobs ON prover_jobs.l1_batch_number = scheduler_witness_jobs.l1_batch_number \
-                  WHERE prover_jobs.l1_batch_number >= $1 \
-                    AND prover_jobs.l1_batch_number <= $2 \
-                    AND prover_jobs.aggregation_round = 3 \
-                    AND prover_jobs.status = 'successful'",
+                "SELECT \
+                     prover_jobs.result AS proof, \
+                     scheduler_witness_jobs.aggregation_result_coords \
+                 FROM \
+                     prover_jobs \
+                     INNER JOIN scheduler_witness_jobs ON prover_jobs.l1_batch_number = scheduler_witness_jobs.l1_batch_number \
+                 WHERE \
+                     prover_jobs.l1_batch_number >= $1 \
+                     AND prover_jobs.l1_batch_number <= $2 \
+                     AND prover_jobs.aggregation_round = 3 \
+                     AND prover_jobs.status = 'successful'",
                 from_block.0 as i32,
                 to_block.0 as i32
             )
@@ -343,14 +378,18 @@ impl ProverDal<'_, '_> {
     ) -> HashMap<String, JobCountStatistics> {
         {
             sqlx::query!(
-                "  SELECT COUNT(*) AS \"count!\", \
-                          circuit_type AS \"circuit_type!\", \
-                          status AS \"status!\" \
-                     FROM prover_jobs \
-                    WHERE status <> 'skipped' \
-                      AND status <> 'successful' \
-                 GROUP BY circuit_type, \
-                          status"
+                "SELECT \
+                     COUNT(*) AS \"count!\", \
+                     circuit_type AS \"circuit_type!\", \
+                     status AS \"status!\" \
+                 FROM \
+                     prover_jobs \
+                 WHERE \
+                     status <> 'skipped' \
+                     AND status <> 'successful' \
+                 GROUP BY \
+                     circuit_type, \
+                     status"
             )
             .fetch_all(self.storage.conn())
             .await
@@ -379,10 +418,13 @@ impl ProverDal<'_, '_> {
     pub async fn get_prover_jobs_stats(&mut self) -> JobCountStatistics {
         {
             let mut results: HashMap<String, usize> = sqlx::query!(
-                "  SELECT COUNT(*) AS \"count!\", \
-                          status AS \"status!\" \
-                     FROM prover_jobs \
-                 GROUP BY status"
+                "SELECT \
+                     COUNT(*) AS \"count!\", \
+                     status AS \"status!\" \
+                 FROM \
+                     prover_jobs \
+                 GROUP BY \
+                     status"
             )
             .fetch_all(self.storage.conn())
             .await
@@ -402,15 +444,22 @@ impl ProverDal<'_, '_> {
     pub async fn min_unproved_l1_batch_number(&mut self) -> Option<L1BatchNumber> {
         {
             sqlx::query!(
-                "SELECT MIN(l1_batch_number) AS \"l1_batch_number?\" \
-                   FROM ( \
-                           SELECT MIN(l1_batch_number) AS \"l1_batch_number\" \
-                             FROM prover_jobs \
-                            WHERE status = 'successful' \
-                               OR aggregation_round < 3 \
-                         GROUP BY l1_batch_number \
-                           HAVING MAX(aggregation_round) < 3 \
-                        ) AS inn"
+                "SELECT \
+                     MIN(l1_batch_number) AS \"l1_batch_number?\" \
+                 FROM \
+                     ( \
+                         SELECT \
+                             MIN(l1_batch_number) AS \"l1_batch_number\" \
+                         FROM \
+                             prover_jobs \
+                         WHERE \
+                             status = 'successful' \
+                             OR aggregation_round < 3 \
+                         GROUP BY \
+                             l1_batch_number \
+                         HAVING \
+                             MAX(aggregation_round) < 3 \
+                     ) AS inn"
             )
             .fetch_one(self.storage.conn())
             .await
@@ -425,17 +474,21 @@ impl ProverDal<'_, '_> {
     ) -> Vec<(String, L1BatchNumber)> {
         {
             sqlx::query!(
-                "  SELECT MIN(l1_batch_number) AS \"l1_batch_number!\", \
-                          circuit_type \
-                     FROM prover_jobs \
-                    WHERE aggregation_round = 0 \
-                      AND ( \
-                          status = 'queued' \
-                       OR status = 'in_progress' \
-                       OR status = 'in_gpu_proof' \
-                       OR status = 'failed' \
-                          ) \
-                 GROUP BY circuit_type"
+                "SELECT \
+                     MIN(l1_batch_number) AS \"l1_batch_number!\", \
+                     circuit_type \
+                 FROM \
+                     prover_jobs \
+                 WHERE \
+                     aggregation_round = 0 \
+                     AND ( \
+                         status = 'queued' \
+                         OR status = 'in_progress' \
+                         OR status = 'in_gpu_proof' \
+                         OR status = 'failed' \
+                     ) \
+                 GROUP BY \
+                     circuit_type"
             )
             .fetch_all(self.storage.conn())
             .await
@@ -449,24 +502,37 @@ impl ProverDal<'_, '_> {
     pub async fn get_extended_stats(&mut self) -> anyhow::Result<JobExtendedStatistics> {
         {
             let limits = sqlx::query!(
-                "SELECT ( \
-                           SELECT l1_batch_number \
-                             FROM prover_jobs \
-                            WHERE status NOT IN ('successful', 'skipped') \
-                         ORDER BY l1_batch_number \
-                            LIMIT 1 \
-                        ) AS \"successful_limit!\", \
-                        ( \
-                           SELECT l1_batch_number \
-                             FROM prover_jobs \
-                            WHERE status <> 'queued' \
-                         ORDER BY l1_batch_number DESC \
-                            LIMIT 1 \
-                        ) AS \"queued_limit!\", \
-                        ( \
-                           SELECT MAX(l1_batch_number) AS \"max!\" \
-                             FROM prover_jobs \
-                        ) AS \"max_block!\""
+                "SELECT \
+                     ( \
+                         SELECT \
+                             l1_batch_number \
+                         FROM \
+                             prover_jobs \
+                         WHERE \
+                             status NOT IN ('successful', 'skipped') \
+                         ORDER BY \
+                             l1_batch_number \
+                         LIMIT \
+                             1 \
+                     ) AS \"successful_limit!\", \
+                     ( \
+                         SELECT \
+                             l1_batch_number \
+                         FROM \
+                             prover_jobs \
+                         WHERE \
+                             status <> 'queued' \
+                         ORDER BY \
+                             l1_batch_number DESC \
+                         LIMIT \
+                             1 \
+                     ) AS \"queued_limit!\", \
+                     ( \
+                         SELECT \
+                             MAX(l1_batch_number) AS \"max!\" \
+                         FROM \
+                             prover_jobs \
+                     ) AS \"max_block!\""
             )
             .fetch_one(self.storage.conn())
             .await?;
@@ -581,9 +647,12 @@ impl ProverDal<'_, '_> {
     ) -> Result<Option<ProverJobMetadata>, Error> {
         {
             let row = sqlx::query!(
-                "SELECT * \
-                   FROM prover_jobs \
-                  WHERE id = $1",
+                "SELECT \
+                     * \
+                 FROM \
+                     prover_jobs \
+                 WHERE \
+                     id = $1",
                 job_id as i64
             )
             .fetch_optional(self.storage.conn())
@@ -605,13 +674,17 @@ impl ProverDal<'_, '_> {
     ) -> Vec<(i64, String)> {
         {
             let job_ids = sqlx::query!(
-                "SELECT id, \
-                        circuit_input_blob_url \
-                   FROM prover_jobs \
-                  WHERE status = 'successful' \
-                    AND circuit_input_blob_url IS NOT NULL \
-                    AND updated_at < NOW() - INTERVAL '30 days' \
-                  LIMIT $1;",
+                "SELECT \
+                     id, \
+                     circuit_input_blob_url \
+                 FROM \
+                     prover_jobs \
+                 WHERE \
+                     status = 'successful' \
+                     AND circuit_input_blob_url IS NOT NULL \
+                     AND updated_at < NOW() - INTERVAL '30 days' \
+                 LIMIT \
+                     $1;",
                 limit as i32
             )
             .fetch_all(self.storage.conn())
@@ -628,9 +701,11 @@ impl ProverDal<'_, '_> {
         {
             sqlx::query!(
                 "UPDATE prover_jobs \
-                    SET status = $1, \
-                        updated_at = NOW() \
-                  WHERE id = $2",
+                 SET \
+                     status = $1, \
+                     updated_at = NOW() \
+                 WHERE \
+                     id = $2",
                 status,
                 id as i64,
             )
