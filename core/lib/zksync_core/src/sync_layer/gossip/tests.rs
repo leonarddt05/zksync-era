@@ -37,7 +37,7 @@ pub(super) async fn load_final_block(
         .await
         .unwrap()
         .unwrap_or_else(|| panic!("no sync block #{number}"));
-    conversions::sync_block_to_consensus_block(sync_block).unwrap()
+    consensus::sync_block_to_consensus_block(sync_block).unwrap()
 }
 
 pub async fn block_payload(storage: &mut StorageProcessor<'_>, number: u32) -> validator::Payload {

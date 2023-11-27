@@ -89,7 +89,7 @@ pub struct MiniblockHeader {
 }
 
 /// Consensus-related L2 block (= miniblock) fields.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConsensusBlockFields {
     /// Hash of the previous consensus block.
     pub parent: validator::BlockHeaderHash,

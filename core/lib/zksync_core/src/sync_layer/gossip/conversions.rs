@@ -2,10 +2,8 @@
 
 use anyhow::Context as _;
 
-use zksync_consensus_roles::validator::{BlockHeader, BlockNumber, FinalBlock};
-use zksync_types::{
-    api::en::SyncBlock, block::ConsensusBlockFields, MiniblockNumber, ProtocolVersionId,
-};
+use zksync_consensus_roles::validator::FinalBlock;
+use zksync_types::{block::ConsensusBlockFields, MiniblockNumber, ProtocolVersionId};
 
 use crate::{consensus, sync_layer::fetcher::FetchedBlock};
 

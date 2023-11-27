@@ -1,4 +1,5 @@
 use anyhow::Context as _;
+
 use zksync_consensus_roles::validator;
 use zksync_protobuf::{required, ProtoFmt};
 use zksync_types::api::en::SyncBlock;

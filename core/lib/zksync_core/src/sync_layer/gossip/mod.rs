@@ -70,7 +70,7 @@ async fn run_gossip_fetcher_inner(
     let store = PostgresBlockStorage::new(pool, actions, cursor);
     let buffered = Arc::new(Buffered::new(store));
     let store = buffered.inner();
-    let executor = Executor::new(executor_config, node_key, buffered.clone())
+    let executor = Executor::new(ctx, executor_config, node_key, buffered.clone())
         .context("Node executor misconfiguration")?;
 
     scope::run!(ctx, |ctx, s| async {
