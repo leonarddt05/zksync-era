@@ -168,34 +168,6 @@
     },
     "query": "SELECT id, circuit_input_blob_url FROM prover_jobs WHERE status = 'successful' AND circuit_input_blob_url IS NOT NULL AND updated_at < NOW() - INTERVAL '30 days' LIMIT $1;"
   },
-  "02e3bc05a90b0167f430c650d96deb97416d6e078ba57d9ad1314df107975bfd": {
-    "describe": {
-      "columns": [
-        {
-          "name": "number",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "hash",
-          "ordinal": 1,
-          "type_info": "Bytea"
-        }
-      ],
-      "nullable": [
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Int8",
-          "Int4",
-          "Int8"
-        ]
-      }
-    },
-    "query": "SELECT number, hash FROM miniblocks WHERE number >= $1 AND protocol_version = $2 ORDER BY number LIMIT $3"
-  },
   "03b682263ebacd94c358c45e1c8e44eb580190cd57d164b1296baa4cc864ae14": {
     "describe": {
       "columns": [],
@@ -862,26 +834,6 @@
       }
     },
     "query": "UPDATE storage SET value = u.value FROM UNNEST($1::bytea[], $2::bytea[]) AS u (key, value) WHERE u.key = hashed_key"
-  },
-  "18a83c0edd2c705e10c6ac22c258bd6dc663959ccfbdc3de3fe68d1f8fa90e89": {
-    "describe": {
-      "columns": [
-        {
-          "name": "number",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      }
-    },
-    "query": "SELECT number FROM miniblocks WHERE timestamp > $1 ORDER BY number ASC LIMIT 1"
   },
   "191fb8c0549267b515aaa7acc199675be1ea113e9137195468bb8ce64a099ae8": {
     "describe": {
@@ -3041,33 +2993,6 @@
     },
     "query": "UPDATE basic_witness_input_producer_jobs SET status = $1, updated_at = NOW(), time_taken = $3, error = $4 WHERE l1_batch_number = $2 AND status != $5 RETURNING basic_witness_input_producer_jobs.attempts"
   },
-  "400bb5f012b95f5b327a65bf8a55e61a9e41a8040f546d75b9b8aa6be45e78d5": {
-    "describe": {
-      "columns": [
-        {
-          "name": "number",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "hash",
-          "ordinal": 1,
-          "type_info": "Bytea"
-        }
-      ],
-      "nullable": [
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Int4",
-          "Int8"
-        ]
-      }
-    },
-    "query": "SELECT number, hash FROM miniblocks WHERE protocol_version = $1 ORDER BY number DESC LIMIT $2"
-  },
   "425035aa2be499b57f07c8965c6db33c087b2789901e15576be8d9a0195d6ee6": {
     "describe": {
       "columns": [
@@ -4874,19 +4799,6 @@
       }
     },
     "query": "SELECT bootloader_code_hash, default_account_code_hash FROM protocol_versions WHERE id = $1"
-  },
-  "81164396c6410faa1ac0ae9b6f3c23fc738f2061243be8d4c546599c66d130a6": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Int8Array",
-          "ByteaArray"
-        ]
-      }
-    },
-    "query": "UPDATE miniblocks SET hash = u.hash FROM UNNEST($1::BIGINT[], $2::bytea[]) AS u (number, hash) WHERE miniblocks.number = u.number"
   },
   "81982223332b84c989f4fb65c2b921943722a698a680ebf431e2e2d53943cfb8": {
     "describe": {
