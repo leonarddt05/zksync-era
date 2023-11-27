@@ -5611,26 +5611,6 @@
     },
     "query": "\n                UPDATE leaf_aggregation_witness_jobs\n                SET status='queued'\n                WHERE l1_batch_number IN\n                      (SELECT prover_jobs.l1_batch_number\n                       FROM prover_jobs\n                                JOIN leaf_aggregation_witness_jobs lawj ON prover_jobs.l1_batch_number = lawj.l1_batch_number\n                       WHERE lawj.status = 'waiting_for_proofs'\n                         AND prover_jobs.status = 'successful'\n                         AND prover_jobs.aggregation_round = 0\n                       GROUP BY prover_jobs.l1_batch_number, lawj.number_of_basic_circuits\n                       HAVING COUNT(*) = lawj.number_of_basic_circuits)\n                RETURNING l1_batch_number;\n            "
   },
-  "687b4bbd2902f7636f3e83a2f5d8929e09f455c418003c816415d84a3fb64492": {
-    "describe": {
-      "columns": [
-        {
-          "name": "max",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      }
-    },
-    "query": "select MAX(number) from miniblocks where l1_batch_number = $1"
-  },
   "6939e766e122458b2ac618d19b2759c4a7298ef72b81e8c3957e0a5cf35c9552": {
     "describe": {
       "columns": [
