@@ -392,6 +392,20 @@
     },
     "query": "INSERT INTO eth_txs_history (eth_tx_id, base_fee_per_gas, priority_fee_per_gas, tx_hash, signed_raw_tx, created_at, updated_at, confirmed_at) VALUES ($1, 0, 0, $2, '\\x00', now(), now(), $3) RETURNING id"
   },
+  "07bb6aa5f4ffe0b753cca8ac92c65bd7618db908250e5bf9e835f54b1dd04755": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "TextArray",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO snapshots (l1_batch_number, storage_logs_filepaths, factory_deps_filepath, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW())"
+  },
   "09768b376996b96add16a02d1a59231cb9b525cd5bd19d22a76149962d4c91c2": {
     "describe": {
       "columns": [],
@@ -815,6 +829,38 @@
       }
     },
     "query": "SELECT l1_address FROM tokens WHERE market_volume > $1"
+  },
+  "1658e6fce121904c1353e51663fc307b01e02bc412ee46ac17e0f5acacd0b5c4": {
+    "describe": {
+      "columns": [
+        {
+          "name": "l1_batch_number",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "factory_deps_filepath",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "storage_logs_filepaths",
+          "ordinal": 2,
+          "type_info": "TextArray"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "SELECT l1_batch_number, factory_deps_filepath, storage_logs_filepaths FROM snapshots WHERE l1_batch_number = $1"
   },
   "16bca6f4258ff3db90a26a8550c5fc35e666fb698960486528fceba3e452fd62": {
     "describe": {
@@ -5565,6 +5611,26 @@
     },
     "query": "\n                UPDATE leaf_aggregation_witness_jobs\n                SET status='queued'\n                WHERE l1_batch_number IN\n                      (SELECT prover_jobs.l1_batch_number\n                       FROM prover_jobs\n                                JOIN leaf_aggregation_witness_jobs lawj ON prover_jobs.l1_batch_number = lawj.l1_batch_number\n                       WHERE lawj.status = 'waiting_for_proofs'\n                         AND prover_jobs.status = 'successful'\n                         AND prover_jobs.aggregation_round = 0\n                       GROUP BY prover_jobs.l1_batch_number, lawj.number_of_basic_circuits\n                       HAVING COUNT(*) = lawj.number_of_basic_circuits)\n                RETURNING l1_batch_number;\n            "
   },
+  "687b4bbd2902f7636f3e83a2f5d8929e09f455c418003c816415d84a3fb64492": {
+    "describe": {
+      "columns": [
+        {
+          "name": "max",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "select MAX(number) from miniblocks where l1_batch_number = $1"
+  },
   "6939e766e122458b2ac618d19b2759c4a7298ef72b81e8c3957e0a5cf35c9552": {
     "describe": {
       "columns": [
@@ -8657,6 +8723,26 @@
     },
     "query": "\n                    SELECT l1_batch_number, leaf_layer_subqueues_blob_url, aggregation_outputs_blob_url FROM node_aggregation_witness_jobs\n                    WHERE status='successful'\n                    AND leaf_layer_subqueues_blob_url is NOT NULL\n                    AND aggregation_outputs_blob_url is NOT NULL\n                    AND updated_at < NOW() - INTERVAL '30 days'\n                    LIMIT $1;\n                "
   },
+  "a190719309378ee1912ffedd8180c151aacf17c3ca3bfca8563fa404d587edc8": {
+    "describe": {
+      "columns": [
+        {
+          "name": "index",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "\n            SELECT index\n            FROM initial_writes\n            WHERE l1_batch_number <= $1\n            ORDER BY l1_batch_number DESC , index DESC \n            LIMIT 1;\n            "
+  },
   "a19b7137403c5cdf1be5f5122ce4d297ed661fa8bdb3bc91f8a81fe9da47469e": {
     "describe": {
       "columns": [
@@ -8692,6 +8778,32 @@
       }
     },
     "query": "INSERT INTO prover_fri_protocol_versions (id, recursion_scheduler_level_vk_hash, recursion_node_level_vk_hash, recursion_leaf_level_vk_hash, recursion_circuits_set_vks_hash, created_at) VALUES ($1, $2, $3, $4, $5, now()) ON CONFLICT(id) DO NOTHING"
+  },
+  "a2ac8d74aec70c50cd1919c9d532965bfc38d89bf6379bf649318e55071f1b41": {
+    "describe": {
+      "columns": [
+        {
+          "name": "bytecode",
+          "ordinal": 0,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "bytecode_hash",
+          "ordinal": 1,
+          "type_info": "Bytea"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "SELECT bytecode, bytecode_hash FROM factory_deps WHERE miniblock_number <= $1"
   },
   "a39f760d2cd879a78112e57d8611d7099802b03b7cc4933cafb4c47e133ad543": {
     "describe": {
@@ -9686,6 +9798,36 @@
       }
     },
     "query": "INSERT INTO prover_protocol_versions\n                    (id, timestamp, recursion_scheduler_level_vk_hash, recursion_node_level_vk_hash,\n                        recursion_leaf_level_vk_hash, recursion_circuits_set_vks_hash, verifier_address, created_at)\n                VALUES ($1, $2, $3, $4, $5, $6, $7, now())\n                "
+  },
+  "b707b6247c76a50bda3be8076aafb77de60cfc5a0cc61c7dd60e4330eabc28d7": {
+    "describe": {
+      "columns": [
+        {
+          "name": "l1_batch_number",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "factory_deps_filepath",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "storage_logs_filepaths",
+          "ordinal": 2,
+          "type_info": "TextArray"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT l1_batch_number, factory_deps_filepath, storage_logs_filepaths FROM snapshots"
   },
   "b944df7af612ec911170a43be846eb2f6e27163b0d3983672de2b8d5d60af640": {
     "describe": {
