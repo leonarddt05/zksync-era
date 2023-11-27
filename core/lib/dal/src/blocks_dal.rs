@@ -466,6 +466,21 @@ impl BlocksDal<'_, '_> {
         Ok(())
     }
 
+    /// Fetches the number of the last miniblock with consensus fields set.
+    /// Miniblocks with Consensus fields set constitute a prefix of sealed miniblocks,
+    /// so it is enough to traverse the miniblocks in descending order to find the last
+    /// with consensus fields.
+    ///
+    /// If better efficiency is needed we can add an index on "miniblocks without consensus fields".
+    pub async fn get_last_miniblock_number_with_consensus_fields(
+        &mut self,
+    ) -> anyhow::Result<Option<MiniblockNumber>> {
+        let Some(row) = sqlx::query!("SELECT number FROM miniblocks WHERE consensus IS NOT NULL ORDER BY number DESC LIMIT 1")
+            .fetch_optional(self.storage.conn())
+            .await? else { return Ok(None) };
+        Ok(Some(MiniblockNumber(row.number.try_into()?)))
+    }
+
     /// Sets consensus-related fields for the specified miniblock.
     pub async fn set_miniblock_consensus_fields(
         &mut self,

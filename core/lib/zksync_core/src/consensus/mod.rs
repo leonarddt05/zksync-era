@@ -1,20 +1,21 @@
 //! Consensus-related functionality.
 use anyhow::Context as _;
-use zksync_concurrency::{ctx, time, ctx::channel};
+use zksync_concurrency::{ctx, ctx::channel, time};
+use zksync_consensus_executor::{ConsensusConfig, ExecutorConfig};
 use zksync_consensus_roles::validator;
-use zksync_consensus_executor::{ExecutorConfig,ConsensusConfig};
 use zksync_types::block::ConsensusBlockFields;
 use zksync_types::{Address, MiniblockNumber};
 
 mod payload;
 mod proto;
+mod storage;
 
 pub(crate) use self::payload::Payload;
 /*
 struct Config {
     executor: ExecutorConfig,
     consensus: ConsensusConfig,
-    
+
     node_key: node::SecretKey,
     validator_key: validator::SecretKey,
 }
