@@ -9,8 +9,8 @@ pub use self::{
     fri_prover_gateway::FriProverGatewayConfig, fri_witness_generator::FriWitnessGeneratorConfig,
     fri_witness_vector_generator::FriWitnessVectorGeneratorConfig, object_store::ObjectStoreConfig,
     proof_data_handler::ProofDataHandlerConfig, prover::ProverConfig, prover::ProverConfigs,
-    prover_group::ProverGroupConfig, utils::PrometheusConfig,
-    witness_generator::WitnessGeneratorConfig,
+    prover_group::ProverGroupConfig, snapshots_creator::SnapshotsCreatorConfig,
+    utils::PrometheusConfig, witness_generator::WitnessGeneratorConfig,
 };
 
 pub mod alerts;
@@ -35,6 +35,7 @@ pub mod object_store;
 pub mod proof_data_handler;
 pub mod prover;
 pub mod prover_group;
+pub mod snapshots_creator;
 pub mod utils;
 pub mod witness_generator;
 
