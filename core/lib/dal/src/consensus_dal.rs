@@ -27,3 +27,31 @@ impl ConsensusDal<'_, '_> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::ConnectionPool;
+    use rand::Rng as _;
+    use zksync_consensus_storage::ReplicaState;
+
+    #[tokio::test]
+    async fn replica_state_read_write() {
+        let pool = ConnectionPool::test_pool().await;
+        let mut conn = pool.access_storage().await.unwrap();
+        assert!(conn
+            .consensus_dal()
+            .replica_state()
+            .await
+            .unwrap()
+            .is_none());
+        let rng = &mut rand::thread_rng();
+        for _ in 0..10 {
+            let want: ReplicaState = rng.gen();
+            conn.consensus_dal().put_replica_state(&want).await.unwrap();
+            assert_eq!(
+                Some(want),
+                conn.consensus_dal().replica_state().await.unwrap()
+            );
+        }
+    }
+}
