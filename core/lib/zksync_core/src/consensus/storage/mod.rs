@@ -18,7 +18,7 @@ impl WrapError for StorageError {
         f: F,
     ) -> Self {
         match self {
-            Self::Database(err) => Self::Database(err.with_wrap(f)),
+            Self::Database(err) => Self::Database(err.context(f())),
             err => err,
         }
     }
@@ -176,7 +176,7 @@ impl<'a> StorageProcessor<'a> {
 
         ctx.wait(txn.0.blocks_dal().set_miniblock_consensus_fields(n, want))
             .await?
-            .wrap("set_miniblock_consensus_fields()")
+            .context("set_miniblock_consensus_fields()")
             .map_err(StorageError::Database)?;
         txn.commit(ctx).await.wrap("commit()")?;
         Ok(())
