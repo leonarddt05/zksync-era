@@ -167,10 +167,12 @@ async fn syncing_via_gossip_fetcher(delay_first_block: bool, delay_second_block:
         }
     }
     let validator = Executor::new(
+        ctx,
         validator.node_config,
         validator.node_key,
         validator_storage.clone(),
     )
+    .await
     .unwrap();
     // ^ We intentionally do not run consensus on the validator node, since it'll produce blocks
     // with payloads that cannot be parsed by the external node.
@@ -291,10 +293,12 @@ async fn syncing_via_gossip_fetcher_with_multiple_l1_batches(initial_block_count
         validator_storage.put_block(ctx, block).await.unwrap();
     }
     let validator = Executor::new(
+        ctx,
         validator.node_config,
         validator.node_key,
         validator_storage.clone(),
     )
+    .await
     .unwrap();
 
     let (actions_sender, actions) = ActionQueue::new();

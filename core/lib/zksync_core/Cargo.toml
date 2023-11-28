@@ -44,6 +44,7 @@ zksync_concurrency = { version = "0.1.0", git = "https://github.com/matter-labs/
 zksync_consensus_roles = { version = "0.1.0", git = "https://github.com/matter-labs/era-consensus.git", rev = "a2abdd473a67aaf29def05d176c5cf0e9da6184f" }
 zksync_consensus_storage = { version = "0.1.0", git = "https://github.com/matter-labs/era-consensus.git", rev = "a2abdd473a67aaf29def05d176c5cf0e9da6184f" }
 zksync_consensus_executor = { version = "0.1.0", git = "https://github.com/matter-labs/era-consensus.git", rev = "a2abdd473a67aaf29def05d176c5cf0e9da6184f" }
+zksync_consensus_bft = { version = "0.1.0", git = "https://github.com/matter-labs/era-consensus.git", rev = "a2abdd473a67aaf29def05d176c5cf0e9da6184f" }
 zksync_protobuf = { version = "0.1.0", git = "https://github.com/matter-labs/era-consensus.git", rev = "a2abdd473a67aaf29def05d176c5cf0e9da6184f" }
 
 prost = "0.12.1"
